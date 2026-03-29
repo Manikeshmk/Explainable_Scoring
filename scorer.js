@@ -503,12 +503,12 @@ function ruleBasedScore(referenceAnswer, studentAnswer, maxScore = 5) {
   // We use a non-linear scaling if ref is way longer than student.
   const refWords = referenceAnswer.split(/\s+/).length;
   const stuWords = studentAnswer.split(/\s+/).length;
-  
+
   let ratio = matchedTerms.length / refTerms.length;
-  
+
   if (refWords > 1000 && stuWords < 200) {
-      // Summary mode: if student covers 25% of technical terms from a 5000w script, that's excellent density.
-      ratio = Math.min(1.0, ratio * 4.0); 
+    // Summary mode: if student covers 25% of technical terms from a 5000w script, that's excellent density.
+    ratio = Math.min(1.0, ratio * 4.0);
   }
 
   return {
@@ -530,12 +530,12 @@ function paperGradingScore(referenceAnswer, studentAnswer, maxScore = 5) {
   const Sw = (() => {
     const refKw = tokenizeFiltered(referenceAnswer);
     const stuKw = tokenizeFiltered(studentAnswer);
-    
+
     // Summary handling: if student is much shorter than ref, don't penalize harshly if density is high.
     if (refKw.length > 500 && stuKw.length < 150) {
-        return Math.min(1.0, (stuKw.length * 8) / refKw.length); // Adjusted for summary density
+      return Math.min(1.0, (stuKw.length * 8) / refKw.length); // Adjusted for summary density
     }
-    
+
     return stuKw.length === 0 ? 0 : Math.min(1.0, refKw.length / stuKw.length);
   })();
   const Stf = Sc; // Using TF Cosine as Semantic proxy
@@ -547,12 +547,12 @@ function paperGradingScore(referenceAnswer, studentAnswer, maxScore = 5) {
   const C = Math.min(1.0, Math.max(0.0, 0.5 * Stf + 0.5 * Cnlp));
 
   let F = Stf < 0.2 ? 0.0 : Stf >= 0.9 && Sw >= 0.85 ? 1.0 : C;
-  
+
   // High density bonus for summaries
   const refWords = referenceAnswer.split(/\s+/).length;
   const stuWords = studentAnswer.split(/\s+/).length;
   if (refWords > 1000 && stuWords < 150 && Stf > 0.4) {
-      F = Math.min(1.0, F * 1.8);
+    F = Math.min(1.0, F * 1.8);
   }
 
   return F * maxScore;

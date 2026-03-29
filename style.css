@@ -15,9 +15,12 @@
   --primary: hsl(var(--primary-h), var(--primary-s), var(--primary-l));
   --primary-glow: hsla(var(--primary-h), var(--primary-s), var(--primary-l), 0.35);
 
-  --accent1: #4ade80; /* Success Green */
-  --accent2: #38bdf8; /* Info Blue */
-  --accent3: #fbbf24; /* Warning Gold */
+  --accent1: #4ade80;
+  /* Success Green */
+  --accent2: #38bdf8;
+  /* Info Blue */
+  --accent3: #fbbf24;
+  /* Warning Gold */
   --danger: #f87171;
 
   --bg-dark: #0a0a0f;
@@ -34,7 +37,7 @@
   --radius-md: 16px;
   --radius-lg: 24px;
   --radius-xl: 32px;
-  
+
   --container-w: 1200px;
   --gap: 2rem;
 
@@ -97,13 +100,36 @@ body {
   animation: float 20s infinite alternate;
 }
 
-.blob-1 { top: -10%; left: -10%; background: radial-gradient(circle, hsla(245, 80%, 60%, 0.15) 0%, transparent 70%); }
-.blob-2 { bottom: -10%; right: -10%; background: radial-gradient(circle, hsla(160, 80%, 60%, 0.1) 0%, transparent 70%); animation-delay: -5s; }
-.blob-3 { top: 40%; left: 30%; width: 30vw; height: 30vw; background: radial-gradient(circle, hsla(200, 80%, 60%, 0.1) 0%, transparent 70%); animation-delay: -10s; }
+.blob-1 {
+  top: -10%;
+  left: -10%;
+  background: radial-gradient(circle, hsla(245, 80%, 60%, 0.15) 0%, transparent 70%);
+}
+
+.blob-2 {
+  bottom: -10%;
+  right: -10%;
+  background: radial-gradient(circle, hsla(160, 80%, 60%, 0.1) 0%, transparent 70%);
+  animation-delay: -5s;
+}
+
+.blob-3 {
+  top: 40%;
+  left: 30%;
+  width: 30vw;
+  height: 30vw;
+  background: radial-gradient(circle, hsla(200, 80%, 60%, 0.1) 0%, transparent 70%);
+  animation-delay: -10s;
+}
 
 @keyframes float {
-  0% { transform: translate(0, 0) scale(1); }
-  100% { transform: translate(100px, 50px) scale(1.1); }
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  100% {
+    transform: translate(100px, 50px) scale(1.1);
+  }
 }
 
 /* ═══ LAYOUT ═══ */
@@ -173,7 +199,8 @@ body {
   position: relative;
 }
 
-.nav-link:hover, .nav-link.active {
+.nav-link:hover,
+.nav-link.active {
   color: var(--primary);
 }
 
@@ -188,7 +215,8 @@ body {
   transition: var(--transition);
 }
 
-.nav-link:hover::after, .nav-link.active::after {
+.nav-link:hover::after,
+.nav-link.active::after {
   width: 100%;
 }
 
@@ -440,7 +468,7 @@ textarea.form-control {
 .drift-matrix-container {
   overflow-x: auto;
   padding: 10px;
-  background: rgba(0,0,0,0.2);
+  background: rgba(0, 0, 0, 0.2);
   border-radius: var(--radius-md);
 }
 
@@ -448,7 +476,8 @@ textarea.form-control {
   display: grid;
   grid-template-columns: repeat(100, 1fr);
   grid-template-rows: repeat(10, 1fr);
-  width: 800px; /* Force minimum width for matrix details */
+  width: 800px;
+  /* Force minimum width for matrix details */
   gap: 1px;
 }
 
@@ -486,8 +515,13 @@ textarea.form-control {
   border-radius: 100px;
 }
 
-.ex-bar-pos { background: var(--accent1); }
-.ex-bar-neg { background: var(--danger); }
+.ex-bar-pos {
+  background: var(--accent1);
+}
+
+.ex-bar-neg {
+  background: var(--danger);
+}
 
 /* ═══ FOOTER ═══ */
 .footer {
@@ -512,21 +546,54 @@ textarea.form-control {
 
 /* ═══ RESPONSIVE ═══ */
 @media (max-width: 992px) {
-  .hero-title { font-size: 3rem; }
-  .score-grid { grid-template-columns: 1fr; }
+  .hero-title {
+    font-size: 3rem;
+  }
+
+  .score-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 768px) {
-  .nav-links { display: none; }
-  .hero-title { font-size: 2.5rem; }
-  .section { padding: 4rem 0; }
+  .nav-links {
+    display: none;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .section {
+    padding: 4rem 0;
+  }
 }
 
 /* ═══ UTILITIES ═══ */
-.hidden { display: none !important; }
-.text-primary { color: var(--primary); }
-.text-accent1 { color: var(--accent1); }
-.text-accent2 { color: var(--accent2); }
-.text-accent3 { color: var(--accent3); }
-.mt-4 { margin-top: 1rem; }
-.mb-4 { margin-bottom: 1rem; }
+.hidden {
+  display: none !important;
+}
+
+.text-primary {
+  color: var(--primary);
+}
+
+.text-accent1 {
+  color: var(--accent1);
+}
+
+.text-accent2 {
+  color: var(--accent2);
+}
+
+.text-accent3 {
+  color: var(--accent3);
+}
+
+.mt-4 {
+  margin-top: 1rem;
+}
+
+.mb-4 {
+  margin-bottom: 1rem;
+}

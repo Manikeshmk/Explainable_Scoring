@@ -98,8 +98,8 @@ function renderExplanation(explanation) {
         tipsDiv.style.padding = "1rem";
         tipsDiv.style.background = "rgba(108, 99, 255, 0.05)";
         tipsDiv.style.borderRadius = "8px";
-        tipsDiv.innerHTML = `<strong style="display:block; margin-bottom:0.5rem; color:var(--primary);">💡 Recommendations:</strong>` + 
-                           `<ul style="font-size:0.85rem; padding-left:1.5rem;">${explanation.tips.map(t => `<li>${t}</li>`).join("")}</ul>`;
+        tipsDiv.innerHTML = `<strong style="display:block; margin-bottom:0.5rem; color:var(--primary);">💡 Recommendations:</strong>` +
+            `<ul style="font-size:0.85rem; padding-left:1.5rem;">${explanation.tips.map(t => `<li>${t}</li>`).join("")}</ul>`;
         body.appendChild(tipsDiv);
     }
 }
@@ -143,7 +143,7 @@ function renderDriftMatrix(matrix) {
     container.innerHTML = "";
     // X is Teacher (100 parts), Y is Student (10 parts)
     // The matrix from scorer is stuChunks[j][refChunks[i]] -> 10 rows (Y) of 100 cols (X)
-    
+
     for (let j = 0; j < matrix.length; j++) {
         for (let i = 0; i < matrix[j].length; i++) {
             const cell = document.createElement("div");
@@ -151,7 +151,7 @@ function renderDriftMatrix(matrix) {
             const sim = matrix[j][i];
             cell.style.setProperty("--sim", sim);
             // Tooltip or title for inspection
-            cell.title = `T-Chunk ${i+1}, S-Chunk ${j+1}: Sim ${sim.toFixed(2)}`;
+            cell.title = `T-Chunk ${i + 1}, S-Chunk ${j + 1}: Sim ${sim.toFixed(2)}`;
             container.appendChild(cell);
         }
     }
@@ -160,7 +160,7 @@ function renderDriftMatrix(matrix) {
 function renderSentenceAttributions(sentences) {
     const body = document.getElementById("sentence-attribution-body");
     if (!body) return;
-    
+
     body.innerHTML = sentences.map(s => {
         const isPos = s.attribution >= 0;
         return `
@@ -194,8 +194,8 @@ function renderConceptClusters(clusters) {
     // Draw lines
     ctx.strokeStyle = "rgba(108, 99, 255, 0.1)";
     ctx.lineWidth = 1;
-    for(let i=0; i<nodes.length; i++) {
-        for(let j=i+1; j<nodes.length; j++) {
+    for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
             const dist = Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y);
             if (dist < 150) {
                 ctx.beginPath();
@@ -251,7 +251,7 @@ if (demoForm) {
 
         try {
             const res = gradeAnswer(ref, stu, max);
-            
+
             // Show result panels
             document.getElementById("results-placeholder").classList.add("hidden");
             document.getElementById("results-content").classList.remove("hidden");
@@ -313,18 +313,18 @@ if (uploadZone && batchInput) {
 function handleCsvUpload(file) {
     if (!checkLibrary("Papa")) return;
     showToast(`Processing ${file.name}...`);
-    
+
     Papa.parse(file, {
         header: true,
         skipEmptyLines: true,
         complete: (results) => {
             const data = results.data;
             const headers = results.meta.fields;
-            
+
             // Auto-detect columns
             const colRef = headers.find(h => /ref|desired|model/i.test(h)) || headers[1];
             const colStu = headers.find(h => /student|stu|response/i.test(h)) || headers[2];
-            
+
             const scored = data.map(row => {
                 const res = gradeAnswer(row[colRef] || "", row[colStu] || "", 5);
                 return {
@@ -345,18 +345,18 @@ function renderBatchResults(data) {
     if (!wrap) return;
 
     resultsSec.classList.remove("hidden");
-    
+
     let html = `<table style="width:100%; border-collapse:collapse; font-size:0.85rem;"><thead><tr style="background:rgba(255,255,255,0.05);">`;
     Object.keys(data[0]).forEach(k => html += `<th style="padding:1rem; text-align:left; border-bottom:1px solid var(--border-glass);">${k}</th>`);
     html += `</tr></thead><tbody>`;
-    
+
     data.forEach(row => {
         html += `<tr style="border-bottom:1px solid var(--border-glass);">`;
         Object.values(row).forEach(v => html += `<td style="padding:1rem;">${v}</td>`);
         html += `</tr>`;
     });
     html += `</tbody></table>`;
-    
+
     wrap.innerHTML = html;
     showToast("Batch results loaded!");
 }

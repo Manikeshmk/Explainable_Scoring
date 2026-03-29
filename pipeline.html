@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pipeline — ExplainGrade Architecture</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div class="bg-blobs">
         <div class="blob blob-1"></div>
@@ -37,67 +40,79 @@
             <div>
                 <div class="glass-card" style="margin-bottom: 2rem;">
                     <h3 style="margin-bottom: 1rem;"><span class="text-accent2">Stage 1:</span> Rule-Based Floor</h3>
-                    <p style="color: var(--text-dim); margin-bottom: 1.5rem;">Calculates a guaranteed minimum score based on literal technical term coverage. Students cannot score below what they explicitly mentioned.</p>
-                    <div style="padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px; font-family: 'JetBrains Mono'; font-size: 0.85rem; border-left: 4px solid var(--accent3);">
+                    <p style="color: var(--text-dim); margin-bottom: 1.5rem;">Calculates a guaranteed minimum score
+                        based on literal technical term coverage. Students cannot score below what they explicitly
+                        mentioned.</p>
+                    <div
+                        style="padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px; font-family: 'JetBrains Mono'; font-size: 0.85rem; border-left: 4px solid var(--accent3);">
                         Score = (MatchedTerms / TotalTerms) * MaxMarks
                     </div>
                 </div>
 
                 <div class="glass-card">
                     <h3 style="margin-bottom: 1rem;"><span class="text-primary">Stage 2:</span> Semantic Grading</h3>
-                    <p style="color: var(--text-dim); margin-bottom: 1.5rem;">Applies the PMC12171532 equations using NLP metrics and Semantic Similarity to award points for meaning and conceptual understanding.</p>
-                     <div style="padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px; font-family: 'JetBrains Mono'; font-size: 0.85rem; border-left: 4px solid var(--primary);">
+                    <p style="color: var(--text-dim); margin-bottom: 1.5rem;">Applies the PMC12171532 equations using
+                        NLP metrics and Semantic Similarity to award points for meaning and conceptual understanding.
+                    </p>
+                    <div
+                        style="padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px; font-family: 'JetBrains Mono'; font-size: 0.85rem; border-left: 4px solid var(--primary);">
                         Score = min(MaxMarks, Stage1 + (F * MaxMarks))
                     </div>
                 </div>
             </div>
 
             <div>
-                 <h3 class="mb-4">Scoring Metrics & Weights</h3>
-                 <div class="metrics-grid" style="display: grid; gap: 1rem;">
-                     <!-- Metric Card -->
-                     <div class="glass-card" style="padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem;">
-                         <div style="font-size: 2rem;">🧠</div>
-                         <div>
-                             <h4 style="margin: 0;">Semantic Similarity (50%)</h4>
-                             <p style="font-size: 0.85rem; color: var(--text-dim);">TF-Cosine proxy for USE contextual meaning.</p>
-                         </div>
-                     </div>
-                     <div class="glass-card" style="padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem;">
+                <h3 class="mb-4">Scoring Metrics & Weights</h3>
+                <div class="metrics-grid" style="display: grid; gap: 1rem;">
+                    <!-- Metric Card -->
+                    <div class="glass-card" style="padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem;">
+                        <div style="font-size: 2rem;">🧠</div>
+                        <div>
+                            <h4 style="margin: 0;">Semantic Similarity (50%)</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-dim);">TF-Cosine proxy for USE contextual
+                                meaning.</p>
+                        </div>
+                    </div>
+                    <div class="glass-card" style="padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem;">
                         <div style="font-size: 2rem;">🔗</div>
                         <div>
                             <h4 style="margin: 0;">Jaccard Similarity (15%)</h4>
-                            <p style="font-size: 0.85rem; color: var(--text-dim);">Token-set intersection for vocabulary usage.</p>
+                            <p style="font-size: 0.85rem; color: var(--text-dim);">Token-set intersection for vocabulary
+                                usage.</p>
                         </div>
                     </div>
                     <div class="glass-card" style="padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem;">
                         <div style="font-size: 2rem;">📐</div>
                         <div>
                             <h4 style="margin: 0;">Cosine Frequency (15%)</h4>
-                            <p style="font-size: 0.85rem; color: var(--text-dim);">Word frequency vector angle for synonymous phrasing.</p>
+                            <p style="font-size: 0.85rem; color: var(--text-dim);">Word frequency vector angle for
+                                synonymous phrasing.</p>
                         </div>
                     </div>
                     <div class="glass-card" style="padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem;">
                         <div style="font-size: 2rem;">📝</div>
                         <div>
                             <h4 style="margin: 0;">Normalized Word Count (15%)</h4>
-                            <p style="font-size: 0.85rem; color: var(--text-dim);">Ratio-based length checks to prevent inflation.</p>
+                            <p style="font-size: 0.85rem; color: var(--text-dim);">Ratio-based length checks to prevent
+                                inflation.</p>
                         </div>
                     </div>
                     <div class="glass-card" style="padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem;">
                         <div style="font-size: 2rem;">🖋️</div>
                         <div>
                             <h4 style="margin: 0;">Edit Similarity (5%)</h4>
-                            <p style="font-size: 0.85rem; color: var(--text-dim);">Normalized Levenshtein for typo tolerance.</p>
+                            <p style="font-size: 0.85rem; color: var(--text-dim);">Normalized Levenshtein for typo
+                                tolerance.</p>
                         </div>
                     </div>
-                 </div>
+                </div>
             </div>
         </div>
 
         <div class="glass-card" style="margin-top: 4rem;">
             <h3 class="mb-4">📋 Equations from PMC12171532</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; font-family: 'JetBrains Mono'; font-size: 0.9rem;">
+            <div
+                style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; font-family: 'JetBrains Mono'; font-size: 0.9rem;">
                 <div style="padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px;">
                     <p style="color: var(--accent2); margin-bottom: 0.5rem;">// Confidence Score (C)</p>
                     C = 0.5 * Stf + 0.5 * (0.15*Sj + 0.05*Se + 0.15*Sc + 0.15*Sw)
@@ -105,8 +120,8 @@
                 <div style="padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px;">
                     <p style="color: var(--accent1); margin-bottom: 0.5rem;">// Final Scoring Rule (F)</p>
                     if (Stf < 0.2) return 0.0<br>
-                    if (Stf >= 0.9 && Sw >= 0.8) return 1.0<br>
-                    else return C
+                        if (Stf >= 0.9 && Sw >= 0.8) return 1.0<br>
+                        else return C
                 </div>
             </div>
         </div>
@@ -118,4 +133,5 @@
         </div>
     </footer>
 </body>
+
 </html>
