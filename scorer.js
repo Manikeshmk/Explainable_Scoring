@@ -835,9 +835,7 @@ function gradeAnswer(referenceAnswer, studentAnswer, maxScore = 5) {
 
   // ── Compute timeline drift analysis ──
   const timeline = computeTimelineDrift(referenceAnswer, studentAnswer);
-
-  // Note: Drift is used for visualization and feedback only, not for scoring
-  // Final score remains unchanged based on Stage1 + Stage2 only
+  const matrix = computeDriftMatrix(referenceAnswer, studentAnswer);
 
   const shap = shapValues(features, maxScore);
   return {
@@ -845,6 +843,7 @@ function gradeAnswer(referenceAnswer, studentAnswer, maxScore = 5) {
     features,
     drift,
     timeline,
+    matrix,
     shap,
     explanation: generateExplanation(scoreObj, features, drift, shap, maxScore),
     sentences: calculateSentenceAttributions(
@@ -860,4 +859,72 @@ function gradeAnswer(referenceAnswer, studentAnswer, maxScore = 5) {
   };
 }
 
-if (typeof module !== "undefined") module.exports = { gradeAnswer };
+/**
+ * Advanced Semantic Drift Matrix (100x10)
+ * X-axis: Teacher (100 parts)
+ * Y-axis: Student (10 parts)
+ */
+function computeDriftMatrix(reference, student) {
+  const refWords = reference.split(/\s+/);
+  const stuWords = student.split(/\s+/);
+
+  if (refWords.length < 100 || stuWords.length < 10) {
+    return null;
+  }
+
+  const refChunks = [];
+  const refStep = refWords.length / 100;
+  for (let i = 0; i < 100; i++) {
+    refChunks.push(
+      refWords
+        .slice(Math.floor(i * refStep), Math.floor((i + 1) * refStep))
+        .join(" "),
+    );
+  }
+
+  const stuChunks = [];
+  const stuStep = stuWords.length / 10;
+  for (let j = 0; j < 10; j++) {
+    stuChunks.push(
+      stuWords
+        .slice(Math.floor(j * stuStep), Math.floor((j + 1) * stuStep))
+        .join(" "),
+    );
+  }
+
+  const matrix = [];
+  for (let j = 0; j < 10; j++) {
+    const row = [];
+    for (let i = 0; i < 100; i++) {
+      row.push(tfCosineSim(refChunks[i], stuChunks[j]));
+    }
+    matrix.push(row);
+  }
+
+  return matrix;
+}
+
+/**
+ * TRY SAMPLES DATA
+ */
+const SAMPLES = {
+  case1: {
+    ref: "Artificial Intelligence is a branch of computer science that aims to create intelligent machines that work and react like humans. Key aspects include speech recognition, learning, planning, and problem solving. Machine learning is a core component where algorithms improve through experience.",
+    stu: "AI is a computer science field focused on building smart machines that mimic human behavior. Its main features are learning from data, planning, and solving complex problems. Machine learning is very important because it allows systems to learn from experience.",
+    max: 10,
+  },
+  case2: {
+    ref: (() => {
+      let base =
+        "In today's lecture on Agentic AI, we discussed the evolution of autonomous systems. We started with rule-based systems which were inflexible. Then we moved to early machine learning models that could generalize. Now we are in the era of Agentic AI where models can use tools, plan their own sub-tasks, and iterate on solutions until a goal is met. Key concepts include reasoning loops, recursive self-improvement, and tool-augmented generation. Security is a major concern specifically prompt injection and data exfiltration. We must build robust 'guardrails' using separate evaluator models. Ethical alignment is also crucial so that agents don't drift from human values during long-running tasks. This is essential for large scale deployments in enterprise environments where consistency and safety are paramount.";
+      return Array(20).fill(base).join(" "); // Approx 2000 words transcript
+    })(),
+    stu: "Today's lecture covered Agentic AI, moving from rigid rules to autonomous agents that plan, use tools, and improve over time. Key topics included reasoning loops, tool-augmented generation, and the necessity of security guardrails against prompt injection. Finally, we emphasized ethical alignment to keep agents tethered to human values.",
+    max: 10,
+  },
+};
+
+// Global Exposure
+window.SAMPLES = SAMPLES;
+
+if (typeof module !== "undefined") module.exports = { gradeAnswer, SAMPLES };
