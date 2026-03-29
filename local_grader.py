@@ -372,45 +372,188 @@ def normalized_word_count(ref: str, stu: str) -> float:
     return min(1.0, len(stu_words & ref_words) / len(ref_words))
 
 
+def compute_semantic_drift(reference: str, student: str, ref_terms: list) -> dict:
+    """
+    Compute semantic drift metrics measuring how much the student answer
+    deviates from the reference in terms of concept coverage and topic consistency.
+    
+    Drift Score (0-1): 0 = perfect alignment, 1 = complete topic deviation
+    Concept Coverage (0-1): percentage of reference concepts covered by student
+    Topic Consistency (0-1): overlap of vocabulary with reference
+    
+    Returns dict with drift metrics and missing/over-explained concepts.
+    """
+    stu_tokens = set(re.findall(r"[a-z]{3,}", student.lower()))
+    ref_token_set = set(re.findall(r"[a-z]{3,}", reference.lower()))
+    
+    # Missing concepts: key reference terms not in student answer
+    missing = [t for t in ref_terms if t not in stu_tokens]
+    missing_count = len(missing)
+    
+    # Over-explained: student used technical concepts not in reference
+    stu_terms = extract_technical_terms(student)
+    over_explained = [t for t in stu_terms if t not in ref_terms]
+    over_count = len(over_explained)
+    
+    # Concept coverage ratio
+    covered_count = len(ref_terms) - missing_count
+    concept_coverage = covered_count / len(ref_terms) if ref_terms else 0.0
+    
+    # Topic consistency: vocabulary overlap with reference
+    topic_consistency = (len(stu_tokens & ref_token_set) / len(ref_token_set)) if ref_token_set else 0.0
+    
+    # Drift score formula:
+    # High error if missing core concepts OR went completely off-topic
+    missing_penalty = (missing_count / len(ref_terms)) if ref_terms else 0.0
+    over_penalty = (over_count / (len(ref_terms) + 1)) * 0.3  # Lower weight for over-explanation
+    
+    drift_score = min(1.0, missing_penalty + over_penalty * (1.0 - topic_consistency))
+    
+    return {
+        "drift_score": round(drift_score, 3),
+        "concept_coverage": round(concept_coverage, 3),
+        "topic_consistency": round(topic_consistency, 3),
+        "missing_concepts_count": missing_count,
+        "over_explained_count": over_count,
+        "missing_concepts": missing[:5],  # Top 5 missing key terms
+        "over_explained_concepts": over_explained[:5],  # Top 5 extra concepts
+    }
+
+
+def extract_anchors(reference: str, max_anchors: int = 8) -> list:
+    """
+    Extract meaningful anchors/snippets from reference text for timeline analysis.
+    Anchors are key sentences containing technical concepts.
+    
+    Returns list of dicts: [{"text": "", "position": 0-100, "index": 0}, ...]
+    """
+    # Split into sentences
+    sentences = re.split(r'(?<=[.!?])\s+', reference)
+    sentences = [s.strip() for s in sentences if s.strip()]
+    
+    if not sentences:
+        return []
+    
+    # Filter sentences with technical terms (length > 15 chars and contains meaningful content)
+    anchors_raw = []
+    for i, sent in enumerate(sentences):
+        if len(sent) > 15:  # Skip very short sentences
+            terms = extract_technical_terms(sent)
+            if len(terms) >= 1:  # Has at least one technical term
+                anchors_raw.append({
+                    "text": sent,
+                    "sentence_index": i,
+                    "tech_terms": terms
+                })
+    
+    # If too many anchors, select evenly distributed ones
+    if len(anchors_raw) > max_anchors:
+        step = len(anchors_raw) / max_anchors
+        anchors_raw = [anchors_raw[int(i * step)] for i in range(max_anchors)]
+    
+    # Calculate position (0-100) based on position in original text
+    total_sentences = len(sentences)
+    anchors = []
+    for idx, anchor in enumerate(anchors_raw):
+        position = round((anchor["sentence_index"] / max(1, total_sentences - 1)) * 100)
+        anchors.append({
+            "text": anchor["text"],
+            "position": position,
+            "index": idx,
+            "tech_terms": anchor["tech_terms"]
+        })
+    
+    return anchors
+
+
+def compute_timeline_drift(reference: str, student: str, model) -> dict:
+    """
+    Compute semantic drift analysis over time (timeline).
+    Extracts anchors from teacher script and measures how well student summary
+    matches each anchor point. Returns timeline data for visualization.
+    
+    Returns: {
+        "timeline": [{"position": 0-100, "similarity": 0-1}, ...],
+        "average_drift": 0-1,
+        "anchor_count": int
+    }
+    """
+    _require("numpy")
+    
+    anchors = extract_anchors(reference)
+    if not anchors:
+        return {
+            "timeline": [],
+            "average_drift": 0.0,
+            "anchor_count": 0
+        }
+    
+    # Encode student answer once
+    stu_embedding = model.encode(student, convert_to_numpy=True)
+    
+    timeline = []
+    drift_scores = []
+    
+    # For each anchor, calculate similarity with student answer
+    for anchor in anchors:
+        anchor_embedding = model.encode(anchor["text"], convert_to_numpy=True)
+        similarity = float(cosine_similarity(anchor_embedding.tolist(), stu_embedding.tolist()))
+        
+        # Drift = opposite of similarity (high similarity = low drift)
+        drift = 1.0 - similarity
+        drift_scores.append(drift)
+        
+        timeline.append({
+            "position": anchor["position"],
+            "similarity": round(similarity, 3),
+            "drift": round(drift, 3)
+        })
+    
+    average_drift = sum(drift_scores) / len(drift_scores) if drift_scores else 0.0
+    
+    return {
+        "timeline": timeline,
+        "average_drift": round(average_drift, 3),
+        "anchor_count": len(anchors)
+    }
+
+
 def grade_answer(model, ref_embedding, ref: str, stu: str, max_score: float):
     """
-    Two-stage grading: Colab-inspired rule-based floor + PMC12171532 NLP similarity.
-
-    Stage 1 — Technical Term Coverage (Colab notebook approach)
-        • Extract unique technical nouns from the reference (spaCy if available, else fallback)
-        • Score = matched_technical_terms / total_technical_terms × max_score
-        • Identical to the Colab: "Summary matched X key technical terms out of Y"
-
-    Stage 2 — PMC12171532 NLP similarity score (unchanged)
-    Final   = min(max_score, stage1 + stage2)
+    Two-stage grading with semantic drift analysis:
+    Stage 1 — Technical Term Coverage (rule-based floor)
+    Stage 2 — PMC12171532 NLP similarity score
+    Semantic Drift — Measure topic consistency and concept coverage deviation
+    Final = min(max_score, stage1 + stage2)
     """
     if not stu.strip():
-        return {"stage1": 0.0, "stage2": 0.0, "final": 0.0, "matched_terms": 0, "total_terms": 0}
+        return {
+            "stage1": 0.0, "stage2": 0.0, "final": 0.0, "semantic": 0.0, "jaccard": 0.0,
+            "drift": 1.0, "concept_coverage": 0.0, "topic_consistency": 0.0,
+            "missing_count": 0, "over_count": 0
+        }
 
     _require("numpy")
     # ── Semantic embedding similarity (real model) ──────────────
     stu_embedding = model.encode(stu, convert_to_numpy=True)
     sem_sim = float(cosine_similarity(ref_embedding.tolist(), stu_embedding.tolist()))
 
-    # ── Stage 1: Technical Term Coverage (Colab notebook approach) ──
-    # Step 1: Extract unique technical nouns from reference
-    ref_terms = extract_technical_terms(ref)          # list of unique lemmas/words
+    # ── Stage 1: Technical Term Coverage ──
+    ref_terms = extract_technical_terms(ref)
     total_ref_terms = len(ref_terms)
 
     if total_ref_terms == 0:
         stage1 = 0.0
         matched_count = 0
     else:
-        # Step 2: All tokens of the student answer (for matching)
         stu_tokens = set(re.findall(r"[a-z]{3,}", stu.lower()))
-
-        # Step 3: How many reference technical terms appear in student answer?
         matched_terms = [t for t in ref_terms if t in stu_tokens]
         matched_count = len(matched_terms)
-
-        # Step 4: Coverage ratio → stage1 score
-        coverage_ratio = matched_count / total_ref_terms         # 0–1
+        coverage_ratio = matched_count / total_ref_terms
         stage1 = round(coverage_ratio * max_score, 3)
+
+    # ── Semantic Drift Analysis ──────────────────────────────────
+    drift_analysis = compute_semantic_drift(ref, stu, ref_terms)
 
     # ── Stage 2: NLP similarity score ───────────────────────────
     s_j = jaccard(ref, stu)
@@ -430,18 +573,26 @@ def grade_answer(model, ref_embedding, ref: str, stu: str, max_score: float):
         F = C
 
     stage2 = F * max_score
-
-    final = min(max_score, stage1 + stage2)
+    
+    # ── Final score (drift is used for visualization only, not scoring) ──
+    raw_final = stage1 + stage2
+    final = min(max_score, raw_final)
 
     return {
         "stage1": round(stage1, 3),
         "stage2": round(stage2, 3),
-        "final":  round(final,  3),
+        "final": round(final, 3),
         "semantic": round(sem_sim, 3),
-        "jaccard":  round(s_j, 3),
+        "jaccard": round(s_j, 3),
+        "drift": drift_analysis["drift_score"],
+        "concept_coverage": drift_analysis["concept_coverage"],
+        "topic_consistency": drift_analysis["topic_consistency"],
+        "missing_count": drift_analysis["missing_concepts_count"],
+        "over_count": drift_analysis["over_explained_count"],
     }
 
 
+# ─────────────────────────────────────────
 # ─────────────────────────────────────────────────────────────────
 # Column detection
 # ─────────────────────────────────────────────────────────────────
@@ -527,6 +678,8 @@ def main():
                 "email": email, "name": name,
                 "stage1": 0.0, "stage2": 0.0, "final": 0.0,
                 "semantic": 0.0, "jaccard": 0.0,
+                "drift": 1.0, "concept_coverage": 0.0, "topic_consistency": 0.0,
+                "missing_count": 0, "over_count": 0,
                 "note": "No summary provided"
             })
             print(f"  [{i:>3}/{len(rows)}]  {email[:40]:<40}  Score: 0.00 / {args.max_score}  (no summary)")
@@ -537,14 +690,16 @@ def main():
             "email": email, "name": name, **res, "note": ""
         })
         bar = "█" * int((res["final"] / args.max_score) * 20)
-        print(f"  [{i:>3}/{len(rows)}]  {email[:40]:<40}  Score: {res['final']:.2f} / {args.max_score}  |{bar:<20}|")
+        drift_pct = int(res["drift"] * 100)
+        print(f"  [{i:>3}/{len(rows)}]  {email[:40]:<40}  Score: {res['final']:.2f} / {args.max_score}  Drift: {drift_pct}%  |{bar:<20}|")
 
     # 6. Sort by score descending
     results.sort(key=lambda r: -r["final"])
 
     # 7. Export CSV
     out_path = args.output
-    fieldnames = ["email", "name", "final", "stage1", "stage2", "semantic", "jaccard", "note"]
+    fieldnames = ["email", "name", "final", "stage1", "stage2", "semantic", "jaccard", 
+                  "drift", "concept_coverage", "topic_consistency", "missing_count", "over_count", "note"]
     with open(out_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()

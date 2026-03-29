@@ -199,7 +199,6 @@ pre {
 }
 
 @media (max-width: 768px) {
-
   .grid-2,
   .grid-3 {
     grid-template-columns: 1fr;
@@ -432,15 +431,21 @@ pre {
   inset: 0;
   z-index: 0;
   background:
-    radial-gradient(ellipse 80% 60% at 50% 0%,
+    radial-gradient(
+      ellipse 80% 60% at 50% 0%,
       rgba(108, 99, 255, 0.18) 0%,
-      transparent 70%),
-    radial-gradient(ellipse 50% 40% at 80% 60%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 80% 60%,
       rgba(0, 212, 255, 0.08) 0%,
-      transparent 70%),
-    radial-gradient(ellipse 40% 30% at 20% 80%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 40% 30% at 20% 80%,
       rgba(255, 107, 157, 0.08) 0%,
-      transparent 70%);
+      transparent 70%
+    );
 }
 
 /* Animated grid lines */
@@ -493,10 +498,12 @@ pre {
 }
 
 .hero__title .grad {
-  background: linear-gradient(135deg,
-      var(--primary) 0%,
-      var(--accent2) 50%,
-      var(--accent) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    var(--accent2) 50%,
+    var(--accent) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -584,7 +591,6 @@ pre {
 }
 
 @keyframes float {
-
   0%,
   100% {
     transform: translateY(0) rotate(0deg);
@@ -762,7 +768,7 @@ pre {
   gap: 12px;
 }
 
-.form__row>* {
+.form__row > * {
   flex: 1;
 }
 
@@ -854,9 +860,11 @@ pre {
 }
 
 .explanation-card__header {
-  background: linear-gradient(135deg,
-      rgba(108, 99, 255, 0.15),
-      rgba(0, 212, 255, 0.08));
+  background: linear-gradient(
+    135deg,
+    rgba(108, 99, 255, 0.15),
+    rgba(0, 212, 255, 0.08)
+  );
   padding: 16px 24px;
   border-bottom: 1px solid var(--border-soft);
   display: flex;
@@ -956,9 +964,11 @@ pre {
 }
 
 .shap-card__header {
-  background: linear-gradient(135deg,
-      rgba(0, 212, 255, 0.12),
-      rgba(108, 99, 255, 0.08));
+  background: linear-gradient(
+    135deg,
+    rgba(0, 212, 255, 0.12),
+    rgba(108, 99, 255, 0.08)
+  );
   padding: 16px 24px;
   border-bottom: 1px solid var(--border-soft);
   display: flex;
@@ -1329,9 +1339,11 @@ pre {
 .feature-card__icon {
   width: 52px;
   height: 52px;
-  background: linear-gradient(135deg,
-      var(--primary-glow),
-      rgba(0, 212, 255, 0.1));
+  background: linear-gradient(
+    135deg,
+    var(--primary-glow),
+    rgba(0, 212, 255, 0.1)
+  );
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   display: flex;
@@ -2203,5 +2215,400 @@ pre {
 
   .student-row .email {
     flex: 0 0 100%;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SEMANTIC DRIFT ANALYSIS
+═══════════════════════════════════════════════════════════════ */
+
+.drift-container {
+  background: var(--card);
+  border: 1.5px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 20px;
+  animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.drift-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.drift-header h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text);
+}
+
+.drift-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.drift-metric {
+  background: var(--bg2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  transition: all var(--transition);
+}
+
+.drift-metric:hover {
+  border-color: var(--border);
+  background: var(--card-hover);
+}
+
+.drift-metric__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+  display: block;
+}
+
+.drift-metric__bar {
+  position: relative;
+  height: 8px;
+  background: var(--bg);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  border: 1px solid var(--border-soft);
+}
+
+.drift-metric__fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: left;
+  transform: scaleX(0);
+}
+
+.drift-metric__fill.animate {
+  transform: scaleX(1);
+}
+
+.drift-metric__value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  font-family: "JetBrains Mono", monospace;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.drift-metric__desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: block;
+}
+
+/* Drift Severity Colors */
+.drift-metric__fill--good {
+  background: linear-gradient(90deg, var(--success), #22c55e);
+}
+
+.drift-metric__fill--moderate {
+  background: linear-gradient(90deg, var(--warning), #f59e0b);
+}
+
+.drift-metric__fill--high {
+  background: linear-gradient(90deg, var(--danger), #ef4444);
+}
+
+/* Missing Concepts Section */
+.drift-missing {
+  background: rgba(248, 113, 113, 0.06);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.drift-missing .drift-box__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--danger);
+  margin-bottom: 12px;
+}
+
+/* Over-Explained Concepts Section */
+.drift-over {
+  background: rgba(59, 130, 246, 0.06);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.drift-over .drift-box__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--info);
+  margin-bottom: 12px;
+}
+
+.drift-box__title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+/* Concepts Container */
+.drift-concepts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Concept Tags */
+.concept-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all var(--transition);
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.concept-tag--missing {
+  background: rgba(248, 113, 113, 0.15);
+  color: var(--danger);
+  border-color: rgba(248, 113, 113, 0.3);
+}
+
+.concept-tag--missing:hover {
+  background: rgba(248, 113, 113, 0.25);
+  border-color: var(--danger);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(248, 113, 113, 0.2);
+}
+
+.concept-tag--extra {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--info);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.concept-tag--extra:hover {
+  background: rgba(59, 130, 246, 0.25);
+  border-color: var(--info);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+/* Drift Score Indicator */
+.drift-score-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid;
+}
+
+.drift-score-badge--good {
+  background: rgba(74, 222, 128, 0.15);
+  color: var(--success);
+  border-color: rgba(74, 222, 128, 0.3);
+}
+
+.drift-score-badge--moderate {
+  background: rgba(251, 191, 36, 0.15);
+  color: var(--warning);
+  border-color: rgba(251, 191, 36, 0.3);
+}
+
+.drift-score-badge--high {
+  background: rgba(248, 113, 113, 0.15);
+  color: var(--danger);
+  border-color: rgba(248, 113, 113, 0.3);
+}
+
+/* Responsive Drift Layout */
+@media (max-width: 768px) {
+  .drift-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .drift-metric__value {
+    font-size: 1.3rem;
+  }
+
+  .drift-concepts {
+    gap: 6px;
+  }
+
+  .concept-tag {
+    font-size: 0.75rem;
+    padding: 5px 10px;
+  }
+
+  .drift-container {
+    padding: 16px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TIMELINE VISUALIZATION (SEMANTIC DRIFT OVER TIME)
+═══════════════════════════════════════════════════════════════ */
+
+.timeline-container {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin-bottom: 0;
+  animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.timeline-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: none;
+}
+
+.timeline-header h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text);
+}
+
+/* Timeline Chart */
+.timeline-chart {
+  width: 100%;
+  height: 140px;
+  position: relative;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  margin-bottom: 8px;
+  border: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline-svg {
+  width: 100%;
+  height: 100%;
+  min-height: 250px;
+  display: block;
+}
+
+/* Timeline Legend */
+.timeline-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: none;
+  flex-wrap: wrap;
+}
+
+.timeline-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timeline-legend-color {
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.timeline-legend-color--similarity {
+  background: linear-gradient(90deg, var(--success), var(--info));
+}
+
+.timeline-legend-color--drift {
+  background: linear-gradient(90deg, var(--warning), var(--danger));
+}
+
+/* Timeline Stats */
+.timeline-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.timeline-stat {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 4px;
+  text-align: center;
+}
+
+.timeline-stat__label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  margin-bottom: 2px;
+  display: block;
+}
+
+.timeline-stat__value {
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: "JetBrains Mono", monospace;
+  color: var(--text);
+  line-height: 1;
+}
+
+/* Responsive Timeline */
+@media (max-width: 768px) {
+  .timeline-container {
+    padding: 0;
+  }
+
+  .timeline-chart {
+    height: 120px;
+  }
+
+  .timeline-legend {
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.7rem;
+  }
+
+  .timeline-stats {
+    grid-template-columns: 1fr;
   }
 }
