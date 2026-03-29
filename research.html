@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research — ExplainGrade academic background</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="index.html" class="nav-logo">🔬 ExplainGrade</a>
+            <ul class="nav-links">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="pipeline.html" class="nav-link">Pipeline</a></li>
+                <li><a href="research.html" class="nav-link active">Research</a></li>
+                <li><a href="usage.html" class="nav-link">How to Use</a></li>
+                <li><a href="chat.html" class="nav-link">Assistant 💬</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="section container" style="margin-top: 100px;">
+        <span class="badge">Research Background</span>
+        <h1 class="hero-title">Academic Foundation</h1>
+        <p class="hero-subtitle">ExplainGrade is built on two published research works and benchmarked against the Mohler ASAG Dataset.</p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 4rem;">
+            <div class="glass-card">
+                <h3 style="margin-bottom: 1.5rem;">🎓 Project Overview</h3>
+                <p style="color: var(--text-dim); margin-bottom: 1rem;">ExplainGrade addresses the "length-bias noise" (longer answers getting artificially inflated scores) and "black-box scoring" (students receive no actionable feedback) present in most ASAG systems.</p>
+                <p style="color: var(--text-dim);">By anchoring every grade to specific, measurable NLP comparisons and providing sentence-level attributions, every point is traceable.</p>
+            </div>
+
+            <div class="glass-card">
+                <h3 style="margin-bottom: 1.5rem;">📄 Key References</h3>
+                <ul style="list-style: none; display: grid; gap: 1.5rem;">
+                    <li style="display: flex; gap: 1rem;">
+                        <span style="font-weight: 800; color: var(--primary);">01</span>
+                        <div>
+                            <strong>Ahmad Ayaan (2024)</strong><br>
+                            <span style="font-size: 0.85rem; color: var(--text-muted);">PMC12171532. Source of the NLP metric weights and scoring equations.</span>
+                        </div>
+                    </li>
+                    <li style="display: flex; gap: 1rem;">
+                        <span style="font-weight: 800; color: var(--primary);">02</span>
+                        <div>
+                            <strong>Filighera et al. (2023)</strong><br>
+                            <span style="font-size: 0.85rem; color: var(--text-muted);">BEA Workshop, ACL 2023. Source of the sentence-level attribution (SLA) framework.</span>
+                        </div>
+                    </li>
+                    <li style="display: flex; gap: 1rem;">
+                        <span style="font-weight: 800; color: var(--primary);">03</span>
+                        <div>
+                            <strong>Mohler et al. (2011)</strong><br>
+                            <span style="font-size: 0.85rem; color: var(--text-muted);">ACL. Dataset used for training and evaluation of similarity measures.</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="glass-card" style="margin-top: 4rem;">
+            <h3 class="mb-4">🛠 Tech Stack & Tools</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+                <span class="badge">Python 3.12</span>
+                <span class="badge">KeyBERT</span>
+                <span class="badge">Sentence Transformers</span>
+                <span class="badge">all-MiniLM-L6-v2</span>
+                <span class="badge">SHAP</span>
+                <span class="badge">PapaParse</span>
+                <span class="badge">Canvas API</span>
+                <span class="badge">Mammoth .docx</span>
+                <span class="badge">XLSX.js</span>
+            </div>
+            <div style="margin-top: 2rem; color: var(--text-muted); font-size: 0.88rem;">
+                ExplainGrade leverages modern NLP models for semantic understanding while remaining light enough to run client-side in the browser for privacy and speed.
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 ExplainGrade · Research & Documentation</p>
+        </div>
+    </footer>
+</body>
+</html>

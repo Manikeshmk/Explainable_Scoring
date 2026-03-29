@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExplainGrade — Advanced ASAG System</title>
+    <meta name="description" content="Explainable Automated Short Answer Grading with sentence-level attribution and semantic drift analysis.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <!-- ═══ NAVBAR ═══ -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="index.html" class="nav-logo">🔬 ExplainGrade</a>
+            <ul class="nav-links">
+                <li><a href="index.html" class="nav-link active">Home</a></li>
+                <li><a href="pipeline.html" class="nav-link">Pipeline</a></li>
+                <li><a href="research.html" class="nav-link">Research</a></li>
+                <li><a href="usage.html" class="nav-link">How to Use</a></li>
+                <li><a href="chat.html" class="nav-link">Assistant 💬</a></li>
+            </ul>
+            <div class="nav-actions">
+                <button class="btn btn-secondary" id="theme-toggle">☀️</button>
+                <a href="https://github.com/ManikeshK1/Explainable_Summary_Score" target="_blank" class="btn btn-primary" style="padding: 0.5rem 1rem;">GitHub</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ═══ HERO ═══ -->
+    <header class="hero">
+        <div class="container text-center" style="text-align: center; width: 100%;">
+            <span class="badge">Explainable AI · NLP · ASAG</span>
+            <h1 class="hero-title">Short Answer Grading<br><span class="gradient-text">That Shows Its Work</span></h1>
+            <p class="hero-subtitle" style="margin: 0 auto 2.5rem;">Grade student answers using a dual-stage NLP pipeline. Get instant, explainable feedback with semantic drift analysis.</p>
+            <div class="hero-btns" style="justify-content: center;">
+                <a href="#demo" class="btn btn-primary">Try Live Demo</a>
+                <a href="#batch" class="btn btn-secondary">Batch Upload</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ═══ LIVE DEMO ═══ -->
+    <section class="section" id="demo">
+        <div class="container">
+            <div class="glass-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2 style="font-size: 1.75rem; font-weight: 800;">✍️ Live Scoring Demo</h2>
+                    <button class="btn btn-secondary btn-sm" id="try-sample">Try Sample 1 (Similarity 1:1)</button>
+                    <button class="btn btn-secondary btn-sm" id="try-sample-2">Try Sample 2 (Summary vs Script)</button>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <form id="demo-form">
+                        <div class="form-group">
+                            <label class="form-label">Reference / Teacher Answer</label>
+                            <textarea id="ref-answer" class="form-control" rows="8" placeholder="Paste the ideal answer or teacher script summary here..." required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Student Answer / Summary</label>
+                            <textarea id="stu-answer" class="form-control" rows="8" placeholder="Paste the student's response here..." required></textarea>
+                        </div>
+                        <div style="display: flex; gap: 1rem; align-items: flex-end;">
+                            <div class="form-group" style="flex: 1;">
+                                <label class="form-label">Max Score</label>
+                                <input id="max-score" type="number" class="form-control" value="10" min="1" max="100">
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="flex: 2; height: 50px; margin-bottom: 1.5rem;">⚡ Compute Score</button>
+                        </div>
+                    </form>
+
+                    <div id="results-placeholder" class="text-center" style="display: flex; flex-direction: column; justify-content: center; align-items: center; border: 2px dashed var(--border-glass); border-radius: var(--radius-md); padding: 2rem;">
+                        <span style="font-size: 3rem; opacity: 0.3;">📊</span>
+                        <p style="color: var(--text-muted); margin-top: 1rem;">Fill the form to see explainable results.</p>
+                    </div>
+
+                    <div id="results-content" class="hidden">
+                        <div class="score-main glass-card" style="padding: 2rem;">
+                            <div class="score-circle" id="score-circle">
+                                <div class="score-value-wrap">
+                                    <span class="score-value" id="score-val">--</span>
+                                    <span class="score-max" id="score-max-val">/ 10</span>
+                                </div>
+                            </div>
+                            <h3 style="margin-bottom: 0.5rem;">Predicted Grade</h3>
+                            <p id="score-verdict" style="color: var(--text-dim); font-size: 0.9rem;"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="xai-content" class="hidden" style="margin-top: 3rem; border-top: 1px solid var(--border-glass); padding-top: 30px;">
+                    <h2 class="mb-4">🔍 Explainability Dashboard</h2>
+                    
+                    <div class="score-grid">
+                        <!-- Left Column: Plain English & SLA -->
+                        <div>
+                            <div class="viz-card glass-card">
+                                <div class="viz-header">
+                                    <h3 class="viz-title">📝 Summary Feedback</h3>
+                                    <span class="badge" style="margin-bottom: 0;">Plain English</span>
+                                </div>
+                                <div id="explanation-body"></div>
+                            </div>
+
+                            <div class="viz-card glass-card">
+                                <div class="viz-header">
+                                    <h3 class="viz-title">💬 Sentence Attribution</h3>
+                                    <span class="badge" style="margin-bottom: 0;">ExASAG (BEA 2023)</span>
+                                </div>
+                                <div id="sentence-attribution-body"></div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Graphs -->
+                        <div>
+                            <div class="viz-card glass-card">
+                                <div class="viz-header">
+                                    <h3 class="viz-title">📊 Metric Impact (SHAP)</h3>
+                                </div>
+                                <div id="shap-body"></div>
+                                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 1rem;">Green = positive impact, Red = negative impact compared to average.</p>
+                            </div>
+
+                            <div class="viz-card glass-card" id="drift-timeline-card">
+                                <div class="viz-header">
+                                    <h3 class="viz-title">📍 Semantic Drift Timeline</h3>
+                                    <span class="badge" style="margin-bottom: 0;">Structure Alignment</span>
+                                </div>
+                                <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 1rem;">Alignment of Teacher Script (X: 100 parts) vs. Student Summary (Y: 10 parts).</p>
+                                <div id="drift-matrix-wrap" class="drift-matrix-container">
+                                    <div id="drift-matrix" class="drift-matrix"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="viz-card glass-card" style="margin-top: 2rem;">
+                         <div class="viz-header">
+                            <h3 class="viz-title">🗺️ Concept Coverage Map</h3>
+                        </div>
+                        <canvas id="cluster-canvas" width="800" height="300" style="width: 100%;"></canvas>
+                        <div id="cluster-legend" style="display: flex; gap: 2rem; justify-content: center; margin-top: 1rem;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ BATCH UPLOADS ═══ -->
+    <section class="section" id="batch">
+        <div class="container">
+            <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 3rem; text-align: center;">🚀 File Grade Runner</h2>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <!-- CSV Batch -->
+                <div class="glass-card" style="border-top: 4px solid var(--accent2);">
+                    <h3 style="margin-bottom: 1.5rem;">📁 Batch CSV Grading</h3>
+                    <p style="color: var(--text-dim); margin-bottom: 2rem;">Upload a CSV file containing columns like `question`, `reference_answer`, and `student_answer` for bulk processing.</p>
+                    <div id="upload-zone" class="text-center" style="border: 2px dashed var(--border-glass); padding: 3rem; border-radius: var(--radius-md); cursor: pointer;">
+                        <span style="font-size: 3rem;">📄</span>
+                        <p style="margin-top: 1rem;">Drop CSV here or <strong>browse</strong></p>
+                        <input type="file" id="batch-file-input" accept=".csv" class="hidden">
+                    </div>
+                </div>
+
+                <!-- XLSX Transcript Eval -->
+                <div class="glass-card" style="border-top: 4px solid var(--primary);">
+                    <h3 style="margin-bottom: 1.5rem;">📊 Script Evaluation (XLSX)</h3>
+                    <p style="color: var(--text-dim); margin-bottom: 1rem;">Grade multiple student summaries (.xlsx) against a long Meet transcript (.docx).</p>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div id="script-upload-zone" style="border: 2px dashed var(--border-glass); padding: 1.5rem; border-radius: var(--radius-md); font-size: 0.85rem; text-align: center; cursor: pointer;">
+                            Teacher .docx
+                            <input type="file" id="script-file-input" accept=".docx" class="hidden">
+                        </div>
+                        <div id="summary-upload-zone" style="border: 2px dashed var(--border-glass); padding: 1.5rem; border-radius: var(--radius-md); font-size: 0.85rem; text-align: center; cursor: pointer;">
+                            Student .xlsx
+                            <input type="file" id="summary-file-input" accept=".xlsx" class="hidden">
+                        </div>
+                    </div>
+                    <button id="run-script-eval-btn" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;" disabled>Run Class Evaluation</button>
+                </div>
+            </div>
+
+            <div id="batch-progress" class="hidden" style="margin-top: 2rem; text-align: center;"></div>
+            <div id="batch-results" class="hidden" style="margin-top: 3rem;">
+                <div id="batch-table-wrap" class="glass-card" style="overflow-x: auto; padding: 0;"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ FOOTER ═══ -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="pipeline.html" class="footer-link">Pipeline</a>
+                <a href="research.html" class="footer-link">Research</a>
+                <a href="usage.html" class="footer-link">Usage</a>
+                <a href="chat.html" class="footer-link">Assistant</a>
+            </div>
+            <p>&copy; 2026 ExplainGrade · Academic Project by ManikeshK1 · Built for XAI in ASAG</p>
+        </div>
+    </footer>
+
+    <div id="toast" class="hidden" style="position: fixed; bottom: 2rem; right: 2rem; background: var(--bg-card); backdrop-filter: var(--glass-blur); border: 1px solid var(--border-glass); padding: 1rem 2rem; border-radius: var(--radius-md); z-index: 9999; box-shadow: var(--shadow-lg);"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="scorer.js"></script>
+    <script src="chat.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

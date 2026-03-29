@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usage Guide — How to use ExplainGrade</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="index.html" class="nav-logo">🔬 ExplainGrade</a>
+            <ul class="nav-links">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="pipeline.html" class="nav-link">Pipeline</a></li>
+                <li><a href="research.html" class="nav-link">Research</a></li>
+                <li><a href="usage.html" class="nav-link active">How to Use</a></li>
+                <li><a href="chat.html" class="nav-link">Assistant 💬</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="section container" style="margin-top: 100px;">
+        <span class="badge">Usage Guide</span>
+        <h1 class="hero-title">How to Use ExplainGrade</h1>
+        <p class="hero-subtitle">Two ways to use the system: Directly in your browser or locally for high-accuracy workloads.</p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; margin-top: 4rem;">
+            <div>
+                <h3 class="mb-4">🌐 Option 1: Browser-Based</h3>
+                <p style="color: var(--text-dim); margin-bottom: 2rem;">No setup required. Perfect for grading individual answers or small batches offline. Zero data leaves your computer.</p>
+                
+                <div style="display: grid; gap: 1.5rem;">
+                    <div class="glass-card" style="padding: 1.5rem;">
+                        <h4 style="margin-bottom: 0.5rem;"><span class="text-primary">01</span> Live Demo</h4>
+                        <p style="font-size: 0.88rem; color: var(--text-muted);">Paste a reference and student answer. Get scores instantly with XAI dashboard.</p>
+                    </div>
+                    <div class="glass-card" style="padding: 1.5rem;">
+                        <h4 style="margin-bottom: 0.5rem;"><span class="text-primary">02</span> Batch CSV</h4>
+                        <p style="font-size: 0.88rem; color: var(--text-muted);">Upload a CSV file for multi-row grading without any manual effort.</p>
+                    </div>
+                    <div class="glass-card" style="padding: 1.5rem;">
+                        <h4 style="margin-bottom: 0.5rem;"><span class="text-primary">03</span> Class Eval (XLSX)</h4>
+                        <p style="font-size: 0.88rem; color: var(--text-muted);">Grade student summaries vs a teacher's script. Requires .docx for transcript and .xlsx for student summaries.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="mb-4">🖥️ Option 2: Local Runner</h3>
+                <p style="color: var(--text-dim); margin-bottom: 1.5rem;">Uses a high-performance **sentence-transformers** model (`all-MiniLM-L6-v2`) for better semantic accuracy than browser-based proxies.</p>
+                
+                <div class="glass-card" style="padding: 1.5rem; font-family: 'JetBrains Mono'; font-size: 13px; line-height: 1.4; background: rgba(0,0,0,0.4);">
+                    <p style="color: var(--text-muted);"># Clone and setup</p>
+                    <span style="color: var(--accent2);">git clone</span> repo_url<br>
+                    <span style="color: var(--accent2);">cd</span> repo_folder<br>
+                    <span style="color: var(--accent2);">pip install</span> -r requirements.txt<br><br>
+                    
+                    <p style="color: var(--text-muted);"># Run the grader</p>
+                    <span style="color: var(--accent2);">python</span> local_grader.py \<br>
+                    &nbsp;&nbsp;--docx transcript.docx \<br>
+                    &nbsp;&nbsp;--xlsx summaries.xlsx \<br>
+                    &nbsp;&nbsp;--max-score 10
+                </div>
+
+                <div class="glass-card" style="margin-top: 1.5rem;">
+                    <h4 style="margin-bottom: 1rem;">Expected Column Headers</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-dim);">The .xlsx file should contain these headers (or similar):</p>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                        <span class="badge" style="margin:0;">emailAddress</span>
+                        <span class="badge" style="margin:0;">name</span>
+                        <span class="badge" style="margin:0;">summary</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 ExplainGrade · Documentation Hub</p>
+        </div>
+    </footer>
+</body>
+</html>

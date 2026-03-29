@@ -492,23 +492,6 @@ function ruleBasedScore(referenceAnswer, studentAnswer, maxScore = 5) {
   if (!referenceAnswer.trim() || !studentAnswer.trim())
     return { score: 0, matchedCount: 0, totalCount: 0 };
 
-  const refNorm = referenceAnswer
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-  const stuNorm = studentAnswer
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-  if (refNorm === stuNorm)
-    return {
-      score: maxScore,
-      matchedCount: extractTechnicalTerms(referenceAnswer).length,
-      totalCount: extractTechnicalTerms(referenceAnswer).length,
-    };
-
   const refTerms = extractTechnicalTerms(referenceAnswer);
   if (refTerms.length === 0)
     return { score: 0, matchedCount: 0, totalCount: 0 };
@@ -516,8 +499,20 @@ function ruleBasedScore(referenceAnswer, studentAnswer, maxScore = 5) {
   const stuAllTokens = new Set(tokenize(studentAnswer));
   const matchedTerms = refTerms.filter((t) => stuAllTokens.has(t));
 
+  // For very long references (scripts), we only expect the summary to cover the most important terms.
+  // We use a non-linear scaling if ref is way longer than student.
+  const refWords = referenceAnswer.split(/\s+/).length;
+  const stuWords = studentAnswer.split(/\s+/).length;
+  
+  let ratio = matchedTerms.length / refTerms.length;
+  
+  if (refWords > 1000 && stuWords < 200) {
+      // Summary mode: if student covers 30% of technical terms from a 5000w script, that's excellent density.
+      ratio = Math.min(1.0, ratio * 3.3); 
+  }
+
   return {
-    score: (matchedTerms.length / refTerms.length) * maxScore,
+    score: ratio * maxScore,
     matchedCount: matchedTerms.length,
     totalCount: refTerms.length,
   };
@@ -535,6 +530,12 @@ function paperGradingScore(referenceAnswer, studentAnswer, maxScore = 5) {
   const Sw = (() => {
     const refKw = tokenizeFiltered(referenceAnswer);
     const stuKw = tokenizeFiltered(studentAnswer);
+    
+    // Summary handling: if student is much shorter than ref, don't penalize harshly if density is high.
+    if (refKw.length > 500 && stuKw.length < 150) {
+        return Math.min(1.0, (stuKw.length * 5) / refKw.length); // Adjusted for summary
+    }
+    
     return stuKw.length === 0 ? 0 : Math.min(1.0, refKw.length / stuKw.length);
   })();
   const Stf = Sc; // Using TF Cosine as Semantic proxy
@@ -546,6 +547,14 @@ function paperGradingScore(referenceAnswer, studentAnswer, maxScore = 5) {
   const C = Math.min(1.0, Math.max(0.0, 0.5 * Stf + 0.5 * Cnlp));
 
   let F = Stf < 0.2 ? 0.0 : Stf >= 0.9 && Sw >= 0.85 ? 1.0 : C;
+  
+  // High density bonus for summaries
+  const refWords = referenceAnswer.split(/\s+/).length;
+  const stuWords = studentAnswer.split(/\s+/).length;
+  if (refWords > 1000 && stuWords < 150 && Stf > 0.4) {
+      F = Math.min(1.0, F * 1.5);
+  }
+
   return F * maxScore;
 }
 
@@ -802,14 +811,12 @@ function computeTimelineDrift(referenceText, studentText) {
       : 0.0;
 
   return {
-    timeline: timeline,
+    timeline,
     averageDrift: Math.round(averageDrift * 1000) / 1000,
     anchorCount: anchors.length,
   };
 }
 
-// ─────────────────────────────────────────────────────────────
-// 7. API
 // ─────────────────────────────────────────────────────────────
 
 function gradeAnswer(referenceAnswer, studentAnswer, maxScore = 5) {
