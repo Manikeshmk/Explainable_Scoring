@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
@@ -50,23 +50,63 @@
 
     <!-- ═══ HERO ═══ -->
     <header class="hero">
-      <div
-        class="container text-center"
-        style="text-align: center; width: 100%"
-      >
-        <span class="badge">Explainable AI · NLP · ASAG</span>
-        <h1 class="hero-title">
-          Short Answer Grading<br /><span class="gradient-text"
-            >That Shows Its Work</span
-          >
-        </h1>
-        <p class="hero-subtitle" style="margin: 0 auto 2.5rem">
-          Grade student answers using a dual-stage NLP pipeline. Get instant,
-          explainable feedback with semantic drift analysis.
-        </p>
-        <div class="hero-btns" style="justify-content: center">
-          <a href="#demo" class="btn btn-primary">Try Live Demo</a>
-          <a href="#batch" class="btn btn-secondary">Batch Upload</a>
+      <div class="container hero-grid">
+        <div class="hero-content">
+          <span class="eyebrow">Explainable AI · Assessment Intelligence</span>
+          <h1 class="hero-title">
+            Explainable short-answer scoring
+          </h1>
+          <p class="hero-subtitle">
+            Run the dual-stage pipeline that powers this project: lexical alignment, semantic reranking, and rich evidence surfaces for every teacher + student pair.
+          </p>
+          <div class="hero-actions">
+            <a href="#demo" class="btn btn-primary hero-cta">Launch Live Demo</a>
+            <a href="#batch" class="btn btn-link">Review Batch Runner</a>
+          </div>
+          <div class="hero-metrics">
+            <div class="metric-pill">
+              <span class="metric-label">Latency</span>
+              <span class="metric-value">~2.3s</span>
+            </div>
+            <div class="metric-pill">
+              <span class="metric-label">Explainers</span>
+              <span class="metric-value">SHAP · Drift</span>
+            </div>
+            <div class="metric-pill">
+              <span class="metric-label">Deployments</span>
+              <span class="metric-value">Vercel / Local</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-panel">
+          <div class="panel-card hero-info-card">
+            <p class="panel-label">Pipeline snapshot</p>
+            <div class="pipeline-steps">
+              <div class="pipeline-step">
+                <span class="step-badge">Stage I</span>
+                <div>
+                  <strong>Lexical alignment</strong>
+                  <p>Anchor extraction, edit distance, and semantic overlap establish a safe floor before reranking.</p>
+                </div>
+              </div>
+              <div class="pipeline-step">
+                <span class="step-badge">Stage II</span>
+                <div>
+                  <strong>Semantic reranking</strong>
+                  <p>Concept clustering + drift scoring highlight where the student summary diverges.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel-card hero-info-card">
+            <p class="panel-label">What the live demo shows</p>
+            <ul class="hero-points">
+              <li>Predicted grade with verdict narrative</li>
+              <li>SHAP bars, sentence attributions, anchor coverage</li>
+              <li>Semantic drift matrix, concept map, batch exports</li>
+            </ul>
+            <p class="panel-note">Everything renders in-browser using <code>scorer.js</code> and the explainability modules.</p>
+          </div>
         </div>
       </div>
     </header>
@@ -75,26 +115,25 @@
     <section class="section" id="demo">
       <div class="container">
         <div class="glass-card">
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              margin-bottom: 2rem;
-            "
-          >
-            <h2 style="font-size: 1.75rem; font-weight: 800">
-              ✍️ Live Scoring Demo
-            </h2>
-            <button class="btn btn-secondary btn-sm" id="try-sample">
-              Try Sample 1 (Similarity 1:1)
-            </button>
-            <button class="btn btn-secondary btn-sm" id="try-sample-2">
-              Try Sample 2 (Summary vs Script)
-            </button>
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Live evaluation workspace</p>
+              <h2>✍️ Live Scoring Demo</h2>
+              <p class="section-subtitle">
+                Paste a teacher reference and a student response. We will run the dual-stage pipeline and surface explainability artifacts instantly.
+              </p>
+            </div>
+            <div class="heading-actions">
+              <button class="btn btn-secondary btn-sm" id="try-sample">
+                Sample 1 · Perfect Match
+              </button>
+              <button class="btn btn-secondary btn-sm" id="try-sample-2">
+                Sample 2 · Transcript Summary
+              </button>
+            </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem">
+          <div class="demo-grid">
             <form id="demo-form">
               <div class="form-group">
                 <label class="form-label">Reference / Teacher Answer</label>
@@ -138,23 +177,9 @@
               </div>
             </form>
 
-            <div
-              id="results-placeholder"
-              class="text-center"
-              style="
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                border: 2px dashed var(--border-glass);
-                border-radius: var(--radius-md);
-                padding: 2rem;
-              "
-            >
-              <span style="font-size: 3rem; opacity: 0.3">📊</span>
-              <p style="color: var(--text-muted); margin-top: 1rem">
-                Fill the form to see explainable results.
-              </p>
+            <div id="results-placeholder" class="results-placeholder">
+              <span>📊</span>
+              <p>Fill the form to see explainable results.</p>
             </div>
 
             <div id="results-content" class="hidden">
@@ -213,6 +238,40 @@
 
               <div class="viz-card glass-card xai-card">
                 <div class="viz-header">
+                  <h3 class="viz-title">📋 Baseline vs Student Metrics</h3>
+                  <span class="badge" style="margin-bottom: 0"
+                    >Dual Bars</span
+                  >
+                </div>
+                <div class="viz-body">
+                  <div id="metric-comparison" class="dual-bar-grid"></div>
+                  <p class="viz-footnote">
+                    Blue bars show expected mastery thresholds, purple bars show the
+                    current response.
+                  </p>
+                </div>
+              </div>
+
+              <div class="viz-card glass-card xai-card">
+                <div class="viz-header">
+                  <h3 class="viz-title">📐 Feature Balance Radar</h3>
+                  <span class="badge" style="margin-bottom: 0">5-D Metrics</span>
+                </div>
+                <div class="viz-body">
+                  <canvas
+                    id="metric-radar"
+                    class="radar-canvas"
+                    width="360"
+                    height="300"
+                  ></canvas>
+                  <p class="viz-footnote">
+                    Normalized snapshot of semantic, lexical, and coverage signals.
+                  </p>
+                </div>
+              </div>
+
+              <div class="viz-card glass-card xai-card">
+                <div class="viz-header">
                   <h3 class="viz-title">💬 Sentence Attribution</h3>
                   <span class="badge" style="margin-bottom: 0"
                     >ExASAG (BEA 2023)</span
@@ -226,6 +285,19 @@
                 </div>
               </div>
 
+              <div class="viz-card glass-card xai-card">
+                <div class="viz-header">
+                  <h3 class="viz-title">🌡️ Sentence Impact Heatmap</h3>
+                  <span class="badge" style="margin-bottom: 0">Top swings</span>
+                </div>
+                <div class="viz-body">
+                  <div id="sentence-heatmap" class="sentence-heatmap"></div>
+                  <p class="viz-footnote">
+                    Bright blocks surface the most helpful or harmful sentences.
+                  </p>
+                </div>
+              </div>
+
               <div class="viz-card glass-card xai-card span-2" id="drift-timeline-card">
                 <div class="viz-header">
                   <h3 class="viz-title">📍 Semantic Drift Timeline</h3>
@@ -234,6 +306,18 @@
                   >
                 </div>
                 <div class="viz-body">
+                  <div class="timeline-strip">
+                    <canvas
+                      id="drift-timeline-canvas"
+                      class="timeline-canvas"
+                      width="640"
+                      height="200"
+                    ></canvas>
+                    <div id="drift-timeline-empty" class="timeline-empty hidden">
+                      Need more overlapping anchors to trace drift.
+                    </div>
+                    <div id="drift-timeline-meta" class="timeline-meta"></div>
+                  </div>
                   <p class="viz-description">
                     Alignment of Teacher Script (X: 100 parts) vs. Student
                     Summary (Y: 10 parts).
@@ -262,18 +346,17 @@
     <!-- ═══ BATCH UPLOADS ═══ -->
     <section class="section" id="batch">
       <div class="container">
-        <h2
-          style="
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 3rem;
-            text-align: center;
-          "
-        >
-          🚀 File Grade Runner
-        </h2>
+        <div class="section-heading text-center">
+          <div>
+            <p class="eyebrow">Bulk evaluation</p>
+            <h2>🚀 File Grade Runner</h2>
+            <p class="section-subtitle">
+              Automate grading for an entire cohort with CSV or pair long transcripts with multi-student summaries via our XLSX workflow.
+            </p>
+          </div>
+        </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem">
+        <div class="batch-grid">
           <!-- CSV Batch -->
           <div class="glass-card" style="border-top: 4px solid var(--accent2)">
             <h3 style="margin-bottom: 1.5rem">📁 Batch CSV Grading</h3>
@@ -386,11 +469,7 @@
           style="margin-top: 2rem; text-align: center"
         ></div>
         <div id="batch-results" class="hidden" style="margin-top: 3rem">
-          <div
-            id="batch-table-wrap"
-            class="glass-card"
-            style="overflow-x: auto; padding: 0"
-          ></div>
+          <div id="batch-table-wrap" class="glass-card batch-table-card"></div>
         </div>
       </div>
     </section>

@@ -91,6 +91,46 @@ function showToast(msg, type = "success") {
   }, 3500);
 }
 
+function clamp01(value) {
+  if (!Number.isFinite(value)) return 0;
+  if (value < 0) return 0;
+  if (value > 1) return 1;
+  return value;
+}
+
+function deriveSemanticDriftPercent(finalScore, maxScore) {
+  const safeMax = Math.max(Number(maxScore) || 0, 1);
+  const normalized = clamp01((Number(finalScore) || 0) / safeMax);
+  return Math.round((1 - normalized) * 100);
+}
+
+function getCssColor(varName, fallback) {
+  const styles = getComputedStyle(document.documentElement);
+  const value = styles.getPropertyValue(varName);
+  return value && value.trim().length ? value.trim() : fallback;
+}
+
+function prepareCanvas(canvas, fallbackWidth = 320, fallbackHeight = 220) {
+  const rect = canvas.getBoundingClientRect();
+  const ratio = window.devicePixelRatio || 1;
+  const width = rect.width || fallbackWidth;
+  const height = rect.height || fallbackHeight;
+  canvas.width = width * ratio;
+  canvas.height = height * ratio;
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  return { ctx, width, height };
+}
+
+function escapeHtml(str = "") {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 // ─────────────────────────────────────────
 // 2. Rendering Logic (XAI Dashboard)
 // ─────────────────────────────────────────
@@ -174,6 +214,133 @@ function renderShap(shap, max) {
     .join("");
 }
 
+function renderMetricComparison(features) {
+  const container = document.getElementById("metric-comparison");
+  if (!container || !features) return;
+
+  const metrics = {
+    feat_avg_semantic: { label: "General Meaning", baseline: 0.55 },
+    feat_max_semantic: { label: "Peak Concept Match", baseline: 0.6 },
+    feat_anchors_covered: { label: "Core Topics", baseline: 0.5 },
+    feat_avg_jaccard: { label: "Vocabulary", baseline: 0.3 },
+    feat_avg_edit: { label: "Phrasing", baseline: 0.35 },
+  };
+
+  const rows = Object.entries(metrics)
+    .map(([key, cfg]) => {
+      const studentVal = clamp01(features[key] ?? 0);
+      const baselineVal = clamp01(cfg.baseline ?? 0);
+      const baselinePct = Math.min(100, Math.max(4, baselineVal * 100));
+      const studentPct = Math.min(100, Math.max(4, studentVal * 100));
+      return `
+        <div class="dual-bar-row">
+          <div class="dual-bar-label">${cfg.label}</div>
+          <div class="dual-bar-pair">
+            <div class="dual-bar-track" aria-label="Baseline ${cfg.label}">
+              <div class="dual-bar dual-bar--baseline" style="width:${baselinePct}%;">
+                <span>Baseline ${(baselineVal * 100).toFixed(0)}%</span>
+              </div>
+            </div>
+            <div class="dual-bar-track" aria-label="Student ${cfg.label}">
+              <div class="dual-bar dual-bar--student" style="width:${studentPct}%;">
+                <span>Student ${(studentVal * 100).toFixed(0)}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+
+  container.innerHTML = rows;
+}
+
+function renderMetricRadar(features) {
+  const canvas = document.getElementById("metric-radar");
+  if (!canvas || !features) return;
+
+  const metrics = [
+    { key: "feat_avg_semantic", label: "Meaning" },
+    { key: "feat_max_semantic", label: "Peak" },
+    { key: "feat_anchors_covered", label: "Concepts" },
+    { key: "feat_avg_jaccard", label: "Vocab" },
+    { key: "feat_avg_edit", label: "Phrasing" },
+  ];
+
+  const { ctx, width, height } = prepareCanvas(canvas, 360, 300);
+  const centerX = width / 2;
+  const centerY = height / 2;
+  const radius = Math.min(width, height) / 2 - 32;
+  const steps = 5;
+  const outline = "rgba(255, 255, 255, 0.15)";
+  const accentStroke = getCssColor("--accent2", "#67b8ff");
+  const accentFill = "rgba(103, 184, 255, 0.18)";
+
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = outline;
+
+  for (let step = 1; step <= steps; step++) {
+    const r = (radius / steps) * step;
+    ctx.beginPath();
+    for (let i = 0; i < metrics.length; i++) {
+      const angle = (Math.PI * 2 * i) / metrics.length - Math.PI / 2;
+      const x = centerX + r * Math.cos(angle);
+      const y = centerY + r * Math.sin(angle);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.stroke();
+  }
+
+  metrics.forEach((metric, idx) => {
+    const angle = (Math.PI * 2 * idx) / metrics.length - Math.PI / 2;
+    const x = centerX + radius * Math.cos(angle);
+    const y = centerY + radius * Math.sin(angle);
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+
+    const labelX = centerX + (radius + 10) * Math.cos(angle);
+    const labelY = centerY + (radius + 10) * Math.sin(angle);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+    ctx.font = "12px var(--font-sans)";
+    ctx.textAlign = labelX >= centerX ? "left" : "right";
+    ctx.textBaseline = labelY >= centerY ? "top" : "bottom";
+    ctx.fillText(metric.label, labelX, labelY);
+  });
+
+  ctx.beginPath();
+  metrics.forEach((metric, idx) => {
+    const value = clamp01(features[metric.key] ?? 0);
+    const angle = (Math.PI * 2 * idx) / metrics.length - Math.PI / 2;
+    const r = radius * value;
+    const x = centerX + r * Math.cos(angle);
+    const y = centerY + r * Math.sin(angle);
+    if (idx === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.closePath();
+  ctx.fillStyle = accentFill;
+  ctx.strokeStyle = accentStroke;
+  ctx.lineWidth = 2;
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = accentStroke;
+  metrics.forEach((metric, idx) => {
+    const value = clamp01(features[metric.key] ?? 0);
+    const angle = (Math.PI * 2 * idx) / metrics.length - Math.PI / 2;
+    const r = radius * value;
+    const x = centerX + r * Math.cos(angle);
+    const y = centerY + r * Math.sin(angle);
+    ctx.beginPath();
+    ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
 /**
  * NEW: Advanced Semantic Drift Timeline (100x10 Matrix)
  */
@@ -215,6 +382,83 @@ function renderDriftMatrix(matrixData) {
   }
 }
 
+function renderDriftTimeline(timelineData) {
+  const canvas = document.getElementById("drift-timeline-canvas");
+  const emptyState = document.getElementById("drift-timeline-empty");
+  const meta = document.getElementById("drift-timeline-meta");
+  if (!canvas) return;
+
+  const timeline = Array.isArray(timelineData?.timeline)
+    ? [...timelineData.timeline].sort((a, b) => a.position - b.position)
+    : [];
+
+  if (!timeline.length) {
+    canvas.classList.add("hidden");
+    if (emptyState) emptyState.classList.remove("hidden");
+    if (meta)
+      meta.textContent = "Need more overlapping anchors to trace drift.";
+    return;
+  }
+
+  canvas.classList.remove("hidden");
+  if (emptyState) emptyState.classList.add("hidden");
+
+  const { ctx, width, height } = prepareCanvas(canvas, 640, 200);
+  const padding = 32;
+  const chartWidth = width - padding * 2;
+  const chartHeight = height - padding * 2;
+
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padding, padding);
+  ctx.lineTo(padding, height - padding);
+  ctx.lineTo(width - padding, height - padding);
+  ctx.stroke();
+
+  const points = timeline.map((entry) => {
+    const safePos = clamp01(entry.position / 100);
+    const safeSim = clamp01(entry.similarity ?? 0);
+    return {
+      x: padding + safePos * chartWidth,
+      y: padding + (1 - safeSim) * chartHeight,
+      similarity: safeSim,
+    };
+  });
+
+  const gradient = ctx.createLinearGradient(padding, 0, width - padding, 0);
+  gradient.addColorStop(0, getCssColor("--accent2", "#67b8ff"));
+  gradient.addColorStop(1, getCssColor("--accent1", "#5be49b"));
+
+  ctx.beginPath();
+  points.forEach((pt, idx) => {
+    if (idx === 0) ctx.moveTo(pt.x, pt.y);
+    else ctx.lineTo(pt.x, pt.y);
+  });
+  ctx.strokeStyle = gradient;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.lineTo(width - padding, height - padding);
+  ctx.lineTo(padding, height - padding);
+  ctx.closePath();
+  ctx.fillStyle = "rgba(118, 104, 255, 0.08)";
+  ctx.fill();
+
+  ctx.fillStyle = "#fff";
+  points.forEach((pt) => {
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  if (meta) {
+    const avgDrift = clamp01(timelineData?.averageDrift ?? 0);
+    const alignment = Math.round((1 - avgDrift) * 100);
+    meta.innerHTML = `<strong>${alignment}%</strong> anchor alignment · ${Math.round(avgDrift * 100)}% drift`;
+  }
+}
+
 function renderSentenceAttributions(sentences) {
   const body = document.getElementById("sentence-attribution-body");
   if (!body) return;
@@ -222,14 +466,51 @@ function renderSentenceAttributions(sentences) {
   body.innerHTML = sentences
     .map((s) => {
       const isPos = s.attribution >= 0;
+      const safeText = escapeHtml(s.text || "");
       return `
             <div style="padding: 0.75rem; border-bottom: 1px solid var(--border-glass); font-size: 0.85rem; display: flex; align-items: flex-start; gap: 10px;">
-                <span style="flex:1;">"${s.text}"</span>
+                <span style="flex:1;">"${safeText}"</span>
                 <span class="badge" style="margin:0; background:${isPos ? "rgba(74, 222, 128, 0.1)" : "rgba(248, 113, 113, 0.1)"}; color:${isPos ? "var(--accent1)" : "var(--danger)"}; border-color:${isPos ? "var(--accent1)" : "var(--danger)"}; min-width:60px; text-align:center;">
                     ${s.attribution >= 0 ? "+" : ""}${s.attribution.toFixed(2)}
                 </span>
             </div>
         `;
+    })
+    .join("");
+}
+
+function renderSentenceHeatmap(sentences) {
+  const container = document.getElementById("sentence-heatmap");
+  if (!container) return;
+
+  if (!Array.isArray(sentences) || !sentences.length) {
+    container.innerHTML =
+      '<p class="timeline-empty">No sentences detected for attribution.</p>';
+    return;
+  }
+
+  const sorted = sentences
+    .slice()
+    .sort((a, b) => Math.abs(b.attribution) - Math.abs(a.attribution))
+    .slice(0, 8);
+  const maxAbs = sorted.reduce(
+    (max, s) => Math.max(max, Math.abs(s.attribution)),
+    0.01,
+  );
+
+  container.innerHTML = sorted
+    .map((sentence) => {
+      const isPos = sentence.attribution >= 0;
+      const intensity = (
+        0.2 + 0.6 * (Math.abs(sentence.attribution) / maxAbs)
+      ).toFixed(2);
+      const safeText = escapeHtml(sentence.text || "");
+      return `
+        <div class="sentence-chip ${isPos ? "pos" : "neg"}" style="--heat-intensity:${intensity};">
+          <div class="sentence-chip__text">${safeText}</div>
+          <span class="sentence-chip__score">${isPos ? "+" : ""}${sentence.attribution.toFixed(2)}</span>
+        </div>
+      `;
     })
     .join("");
 }
@@ -331,14 +612,18 @@ if (demoForm) {
       renderScore(res.scoreObj, max);
       renderExplanation(res.explanation);
       renderShap(res.shap, max);
+      renderMetricComparison(res.features);
+      renderMetricRadar(res.features);
       renderDriftMatrix(res.matrix);
+      renderDriftTimeline(res.timeline);
       renderSentenceAttributions(res.sentences);
+      renderSentenceHeatmap(res.sentences);
       renderConceptClusters(res.clusters);
 
-      const driftPct = Math.round((1 - res.drift.drift_score) * 100);
+      const driftPct = deriveSemanticDriftPercent(res.scoreObj.final, max);
       showPopup(
         "Grading Complete",
-        `Score: ${res.scoreObj.final.toFixed(2)}/${max} | Topic Alignment: ${driftPct}%`,
+        `Score: ${res.scoreObj.final.toFixed(2)}/${max} | Semantic Drift: ${driftPct}%`,
         "success",
       );
     } catch (err) {
@@ -494,14 +779,16 @@ function handleCsvUpload(file) {
 
           if (ref && stu) {
             const res = gradeAnswer(ref, stu, 10);
-            const driftPct = Math.round((1 - res.drift.drift_score) * 100);
+            const driftPct = deriveSemanticDriftPercent(res.scoreObj.final, 10);
+            const alignmentPct = Math.max(0, 100 - driftPct);
 
             scored.push({
               Name: row[colName] || "Unknown",
               Email: row[colEmail] || "N/A",
               Roll: row[colRoll] || "N/A",
               Score: res.scoreObj.final.toFixed(2),
-              "Topic Alignment": driftPct + "%",
+              "Semantic Drift": driftPct + "%",
+              "Topic Alignment": alignmentPct + "%",
               "Concept Coverage":
                 Math.round(res.drift.concept_coverage * 100) + "%",
             });
@@ -551,7 +838,9 @@ function handleCsvUpload(file) {
   });
 }
 
-function renderBatchResults(data, fileName = "results") {
+let liveReplayConfig = null;
+
+function renderBatchResults(data, fileName = "results", options = {}) {
   const wrap = document.getElementById("batch-table-wrap");
   const resultsSec = document.getElementById("batch-results");
   if (!wrap) return;
@@ -564,26 +853,122 @@ function renderBatchResults(data, fileName = "results") {
     <p style="margin:0; color:var(--text-muted); font-size:0.8rem;">Total Records: <strong>${data.length}</strong></p>
   </div>`;
 
+  const columns = Object.keys(data[0]).filter((key) => !key.startsWith("__"));
+  const enableReplay = Boolean(options?.liveReplay);
+
   html += `<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:0.85rem;"><thead><tr style="background:rgba(255,255,255,0.05);">`;
-  Object.keys(data[0]).forEach(
+  columns.forEach(
     (k) =>
       (html += `<th style="padding:1rem; text-align:left; border-bottom:2px solid var(--border-glass); font-weight:600;">${k}</th>`),
   );
+  if (enableReplay) {
+    html += `<th style="padding:1rem; text-align:left; border-bottom:2px solid var(--border-glass); font-weight:600; min-width:130px;">Live Replay</th>`;
+  }
   html += `</tr></thead><tbody>`;
 
   data.forEach((row, idx) => {
     html += `<tr style="border-bottom:1px solid var(--border-glass); ${
       idx % 2 === 0 ? "background:rgba(255,255,255,0.02);" : ""
     }">`;
-    Object.values(row).forEach(
-      (v) => (html += `<td style="padding:1rem;">${v}</td>`),
-    );
+    columns.forEach((col) => {
+      const value = row[col];
+      html += `<td style="padding:1rem;">${value}</td>`;
+    });
+
+    if (enableReplay) {
+      const payload = options.liveReplay.studentAnswers?.[idx] || null;
+      const hasRef = Boolean(options.liveReplay.referenceText);
+      const hasSummary = Boolean(
+        payload && (typeof payload === "string"
+          ? payload.trim()
+          : (payload.text || "").trim()),
+      );
+      const canReplay = hasRef && hasSummary;
+      html += `<td style="padding:1rem;">
+        <button type="button" class="btn btn-sm btn-secondary row-replay-btn" data-row-index="${idx}" ${canReplay ? "" : "disabled"}>
+          ${canReplay ? "Run Live" : "Unavailable"}
+        </button>
+      </td>`;
+    }
+
     html += `</tr>`;
   });
   html += `</tbody></table></div>`;
 
   wrap.innerHTML = html;
   showToast(`✅ Results loaded: ${data.length} records from ${fileName}`);
+
+  if (enableReplay) {
+    liveReplayConfig = {
+      referenceText: options.liveReplay.referenceText || "",
+      studentAnswers: options.liveReplay.studentAnswers || [],
+      maxScore: options.liveReplay.maxScore || 10,
+    };
+    requestAnimationFrame(() => wireLiveReplayButtons());
+  } else {
+    liveReplayConfig = null;
+  }
+}
+
+function wireLiveReplayButtons() {
+  const buttons = document.querySelectorAll(".row-replay-btn");
+  buttons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const idx = Number(btn.dataset.rowIndex || 0);
+      triggerLiveReplay(idx);
+    });
+  });
+}
+
+function triggerLiveReplay(rowIndex) {
+  if (!liveReplayConfig) {
+    showPopup("Live Replay", "No replay data is available yet.", "warning");
+    return;
+  }
+
+  const ref = (liveReplayConfig.referenceText || "").trim();
+  const payload = liveReplayConfig.studentAnswers[rowIndex];
+  const studentText =
+    typeof payload === "string"
+      ? payload
+      : payload?.text;
+  const studentName =
+    typeof payload === "string"
+      ? `Student ${rowIndex + 1}`
+      : payload?.name || `Student ${rowIndex + 1}`;
+
+  if (!ref || !studentText) {
+    showPopup(
+      "Live Replay",
+      "Reference or student answer missing for this row.",
+      "error",
+    );
+    return;
+  }
+
+  const refField = document.getElementById("ref-answer");
+  const stuField = document.getElementById("stu-answer");
+  const maxField = document.getElementById("max-score");
+  if (!refField || !stuField || !maxField || !demoForm) {
+    showPopup(
+      "Live Replay",
+      "Unable to locate the live scoring form on this page.",
+      "error",
+    );
+    return;
+  }
+
+  refField.value = ref;
+  stuField.value = studentText;
+  maxField.value = liveReplayConfig.maxScore || 10;
+
+  const demoSection = document.getElementById("demo");
+  if (demoSection && typeof demoSection.scrollIntoView === "function") {
+    demoSection.scrollIntoView({ behavior: "smooth" });
+  }
+
+  showToast(`🔁 Replaying ${studentName} in live demo...`);
+  demoForm.dispatchEvent(new Event("submit"));
 }
 
 // Script Eval (Docx + Xlsx)
@@ -850,33 +1235,49 @@ if (scriptBtn) {
       document.body.insertAdjacentHTML("beforeend", progressHtml);
 
       const results = [];
+      const replayPayloads = [];
       for (let idx = 0; idx < studentData.length; idx += 1) {
         if (idx % scriptEvalYieldBatch === 0) {
           await yieldToBrowser();
         }
         const s = studentData[idx];
         try {
-          const studentSummary = safeValue(s, evalColumnHints.summary, "");
-          if (!hasMeaningfulValue(studentSummary)) {
+          const studentName = safeValue(
+            s,
+            evalColumnHints.name || "name",
+            "Unknown",
+          );
+          const studentEmail = safeValue(
+            s,
+            evalColumnHints.email || "email",
+            "N/A",
+          );
+          const studentRoll = safeValue(
+            s,
+            evalColumnHints.roll || "roll",
+            "N/A",
+          );
+          const studentSummaryRaw = safeValue(
+            s,
+            evalColumnHints.summary,
+            "",
+          ).trim();
+
+          if (!hasMeaningfulValue(studentSummaryRaw)) {
             results.push({
-              Name: safeValue(s, evalColumnHints.name || "name", "Unknown"),
-              Email: safeValue(s, evalColumnHints.email || "email", "N/A"),
-              Roll: safeValue(s, evalColumnHints.roll || "roll", "N/A"),
+              Name: studentName,
+              Email: studentEmail,
+              Roll: studentRoll,
               Score: "MISSING SUMMARY",
               Drift: "-",
               "Topic Alignment": "-",
               "Concept Coverage": "-",
             });
+            replayPayloads.push(null);
             continue;
           }
-          const res = gradeAnswer(teacherTranscript, studentSummary, 10);
+          const res = gradeAnswer(teacherTranscript, studentSummaryRaw, 10);
 
-          const driftScoreRaw =
-            typeof res?.drift?.drift_score === "number"
-              ? res.drift.drift_score
-              : 0;
-          const driftScore = Math.min(Math.max(driftScoreRaw, 0), 1);
-          const driftPct = Math.round(driftScore * 100);
           const coverageRaw =
             typeof res?.drift?.concept_coverage === "number"
               ? res.drift.concept_coverage
@@ -884,20 +1285,25 @@ if (scriptBtn) {
           const coveragePct = Math.round(
             Math.min(Math.max(coverageRaw, 0), 1) * 100,
           );
-          const alignmentPct = Math.round((1 - driftScore) * 100);
           const finalScore =
             typeof res?.scoreObj?.final === "number"
               ? res.scoreObj.final
               : 0;
+          const driftPct = deriveSemanticDriftPercent(finalScore, 10);
+          const alignmentPct = Math.max(0, 100 - driftPct);
 
           results.push({
-            Name: safeValue(s, evalColumnHints.name || "name", "Unknown"),
-            Email: safeValue(s, evalColumnHints.email || "email", "N/A"),
-            Roll: safeValue(s, evalColumnHints.roll || "roll", "N/A"),
+            Name: studentName,
+            Email: studentEmail,
+            Roll: studentRoll,
             Score: finalScore.toFixed(2),
             Drift: `${driftPct}%`,
             "Topic Alignment": `${alignmentPct}%`,
             "Concept Coverage": `${coveragePct}%`,
+          });
+          replayPayloads.push({
+            text: studentSummaryRaw,
+            name: studentName,
           });
         } catch (e) {
           console.error(`Error evaluating student ${idx}:`, e);
@@ -910,6 +1316,7 @@ if (scriptBtn) {
             "Topic Alignment": "N/A",
             "Concept Coverage": "N/A",
           });
+          replayPayloads.push(null);
         }
 
         // Update progress
@@ -930,7 +1337,13 @@ if (scriptBtn) {
         return;
       }
 
-      renderBatchResults(results, xlsxFileName);
+      renderBatchResults(results, xlsxFileName, {
+        liveReplay: {
+          referenceText: teacherTranscript,
+          studentAnswers: replayPayloads,
+          maxScore: 10,
+        },
+      });
       showPopup(
         "Class Evaluation Complete",
         `Successfully evaluated ${results.length} students from ${xlsxFileName}`,
