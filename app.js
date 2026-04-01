@@ -573,20 +573,80 @@ function renderBatchResults(data, fileName = "results") {
 const scriptBtn = document.getElementById("run-script-eval-btn");
 const docxInput = document.getElementById("script-file-input");
 const xlsxInput = document.getElementById("summary-file-input");
+const docxZone = document.getElementById("script-upload-zone");
+const xlsxZone = document.getElementById("summary-upload-zone");
+const docxFileLabel = document.getElementById("script-upload-filename");
+const xlsxFileLabel = document.getElementById("summary-upload-filename");
+const uploadPlaceholderText = "No file selected yet";
+const scriptBtnDefaultText = scriptBtn
+  ? scriptBtn.textContent.trim()
+  : "Run Class Evaluation";
 
 let teacherTranscript = "";
 let studentData = [];
 let docxFileName = "";
 let xlsxFileName = "";
 
-if (docxInput) {
-  document
-    .getElementById("script-upload-zone")
-    .addEventListener("click", () => docxInput.click());
+function hasMeaningfulValue(value) {
+  return value !== undefined && value !== null && `${value}`.trim() !== "";
+}
+
+function updateUploadState(zoneEl, labelEl, fileName) {
+  if (labelEl) {
+    labelEl.textContent = fileName || uploadPlaceholderText;
+  }
+  if (zoneEl) {
+    zoneEl.classList.toggle("has-file", Boolean(fileName));
+  }
+}
+
+function safeValue(row, key, fallback = "") {
+  if (!row || !key) return fallback;
+  if (hasMeaningfulValue(row[key])) {
+    return row[key];
+  }
+  const normalizedKey = key.toString().trim().toLowerCase();
+  const matchedKey = Object.keys(row).find(
+    (k) => k.toString().trim().toLowerCase() === normalizedKey,
+  );
+  if (matchedKey && hasMeaningfulValue(row[matchedKey])) {
+    return row[matchedKey];
+  }
+  return fallback;
+}
+
+function setScriptEvalRunning(isRunning) {
+  if (!scriptBtn) return;
+  if (isRunning) {
+    scriptBtn.dataset.defaultText =
+      scriptBtn.dataset.defaultText || scriptBtnDefaultText;
+    scriptBtn.textContent = "Running Evaluation...";
+    scriptBtn.disabled = true;
+    scriptBtn.classList.remove("pulse");
+    scriptBtn.classList.add("loading");
+  } else {
+    const baseText = scriptBtn.dataset.defaultText || scriptBtnDefaultText;
+    scriptBtn.textContent = baseText;
+    scriptBtn.classList.remove("loading");
+    checkEvalReady();
+  }
+}
+
+if (docxInput && docxZone) {
+  docxZone.addEventListener("click", () => docxInput.click());
   docxInput.addEventListener("change", async (e) => {
     const file = e.target.files[0];
-    if (file && checkLibrary("mammoth")) {
+    if (!file) {
+      teacherTranscript = "";
+      docxFileName = "";
+      updateUploadState(docxZone, docxFileLabel, "");
+      checkEvalReady();
+      return;
+    }
+
+    if (checkLibrary("mammoth")) {
       docxFileName = file.name;
+      updateUploadState(docxZone, docxFileLabel, docxFileName);
       const arrayBuffer = await file.arrayBuffer();
       const result = await mammoth.extractRawText({ arrayBuffer });
       teacherTranscript = result.value;
@@ -596,7 +656,10 @@ if (docxInput) {
         "success",
       );
       checkEvalReady();
-    } else if (file && !checkLibrary("mammoth")) {
+    } else {
+      teacherTranscript = "";
+      docxFileName = "";
+      updateUploadState(docxZone, docxFileLabel, "");
       showPopup(
         "Library Missing",
         "Mammoth library not loaded for DOCX processing.",
@@ -606,14 +669,21 @@ if (docxInput) {
   });
 }
 
-if (xlsxInput) {
-  document
-    .getElementById("summary-upload-zone")
-    .addEventListener("click", () => xlsxInput.click());
+if (xlsxInput && xlsxZone) {
+  xlsxZone.addEventListener("click", () => xlsxInput.click());
   xlsxInput.addEventListener("change", (e) => {
     const file = e.target.files[0];
-    if (file && checkLibrary("XLSX")) {
+    if (!file) {
+      studentData = [];
+      xlsxFileName = "";
+      updateUploadState(xlsxZone, xlsxFileLabel, "");
+      checkEvalReady();
+      return;
+    }
+
+    if (checkLibrary("XLSX")) {
       xlsxFileName = file.name;
+      updateUploadState(xlsxZone, xlsxFileLabel, xlsxFileName);
       const reader = new FileReader();
       reader.onload = (evt) => {
         const bstr = evt.target.result;
@@ -629,7 +699,10 @@ if (xlsxInput) {
         checkEvalReady();
       };
       reader.readAsBinaryString(file);
-    } else if (file && !checkLibrary("XLSX")) {
+    } else {
+      studentData = [];
+      xlsxFileName = "";
+      updateUploadState(xlsxZone, xlsxFileLabel, "");
       showPopup(
         "Library Missing",
         "XLSX library not loaded for Excel processing.",
@@ -640,9 +713,13 @@ if (xlsxInput) {
 }
 
 function checkEvalReady() {
+  if (!scriptBtn) return;
   if (teacherTranscript && studentData.length > 0) {
     scriptBtn.disabled = false;
     scriptBtn.classList.add("pulse");
+  } else {
+    scriptBtn.disabled = true;
+    scriptBtn.classList.remove("pulse");
   }
 }
 
@@ -656,89 +733,121 @@ if (scriptBtn) {
       );
       return;
     }
+    setScriptEvalRunning(true);
 
-    // Create progress overlay
-    const progressHtml = `
-    <div id="eval-progress-container" style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:9998;">
-        <div style="background:var(--bg-secondary); border-radius:12px; padding:2rem; width:90%; max-width:500px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-            <h3 style="margin:0 0 1rem 0; color:var(--text-primary);">⏳ Evaluating Class...</h3>
-            <div style="background:rgba(255,255,255,0.05); border-radius:8px; padding:0.5rem; height:24px; margin-bottom:1rem; overflow:hidden;">
-                <div id="eval-progress-bar" style="background:linear-gradient(90deg, var(--accent1), var(--accent2)); height:100%; width:0%; border-radius:6px; transition:width 0.3s ease;"></div>
-            </div>
-            <p id="eval-progress-text" style="margin:0; color:var(--text-dim); text-align:center; font-size:0.9rem;">0 / ${studentData.length} evaluated</p>
-        </div>
-    </div>
-    `;
-    document.body.insertAdjacentHTML("beforeend", progressHtml);
+    try {
+      // Create progress overlay
+      const progressHtml = `
+      <div id="eval-progress-container" style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:9998;">
+          <div style="background:var(--bg-secondary); border-radius:12px; padding:2rem; width:90%; max-width:500px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+              <h3 style="margin:0 0 1rem 0; color:var(--text-primary);">⏳ Evaluating Class...</h3>
+              <div style="background:rgba(255,255,255,0.05); border-radius:8px; padding:0.5rem; height:24px; margin-bottom:1rem; overflow:hidden;">
+                  <div id="eval-progress-bar" style="background:linear-gradient(90deg, var(--accent1), var(--accent2)); height:100%; width:0%; border-radius:6px; transition:width 0.3s ease;"></div>
+              </div>
+              <p id="eval-progress-text" style="margin:0; color:var(--text-dim); text-align:center; font-size:0.9rem;">0 / ${studentData.length} evaluated</p>
+          </div>
+      </div>
+      `;
+      document.body.insertAdjacentHTML("beforeend", progressHtml);
 
-    const results = [];
-    studentData.forEach((s, idx) => {
-      try {
-        // Flexible column detection for student answers
-        const summaryCol =
-          Object.keys(s).find((k) =>
-            /summary|answer|response|essay/i.test(k),
-          ) || Object.keys(s)[Object.keys(s).length - 1];
+      const results = [];
+      studentData.forEach((s, idx) => {
+        try {
+          const rowKeys = Object.keys(s);
+          const summaryCol =
+            rowKeys.find((k) =>
+              /summary|answer|response|essay/i.test(k),
+            ) || rowKeys[rowKeys.length - 1];
 
-        const nameCol =
-          Object.keys(s).find((k) => /name|student|fullname/i.test(k)) ||
-          "name";
-        const emailCol =
-          Object.keys(s).find((k) => /email|emailaddress|e-mail/i.test(k)) ||
-          "email";
-        const rollCol =
-          Object.keys(s).find((k) => /roll|rollnumber|studentid|id/i.test(k)) ||
-          "roll";
+          const nameCol =
+            rowKeys.find((k) => /name|student|fullname/i.test(k)) || "name";
+          const emailCol =
+            rowKeys.find((k) => /email|emailaddress|e-mail/i.test(k)) ||
+            "email";
+          const rollCol =
+            rowKeys.find((k) => /roll|rollnumber|studentid|id/i.test(k)) ||
+            "roll";
 
-        const res = gradeAnswer(teacherTranscript, s[summaryCol] || "", 10);
-        const alignmentPct = Math.round((1 - res.drift.drift_score) * 100);
+          const studentSummary = safeValue(s, summaryCol, "");
+          const res = gradeAnswer(teacherTranscript, studentSummary, 10);
 
-        results.push({
-          Name: s[nameCol] || "Unknown",
-          Email: s[emailCol] || "N/A",
-          Roll: s[rollCol] || "N/A",
-          Score: res.scoreObj.final.toFixed(2),
-          "Topic Alignment": alignmentPct + "%",
-          "Concept Coverage":
-            Math.round(res.drift.concept_coverage * 100) + "%",
-        });
-      } catch (e) {
-        console.error(`Error evaluating student ${idx}:`, e);
-        results.push({
-          Name: s.name || "Unknown",
-          Email: s.email || "N/A",
-          Roll: s.roll || "N/A",
-          Score: "ERROR",
-          "Topic Alignment": "N/A",
-          "Concept Coverage": "N/A",
-        });
+          const driftScoreRaw =
+            typeof res?.drift?.drift_score === "number"
+              ? res.drift.drift_score
+              : 0;
+          const driftScore = Math.min(Math.max(driftScoreRaw, 0), 1);
+          const coverageRaw =
+            typeof res?.drift?.concept_coverage === "number"
+              ? res.drift.concept_coverage
+              : 0;
+          const coveragePct = Math.round(
+            Math.min(Math.max(coverageRaw, 0), 1) * 100,
+          );
+          const alignmentPct = Math.round((1 - driftScore) * 100);
+          const finalScore =
+            typeof res?.scoreObj?.final === "number"
+              ? res.scoreObj.final
+              : 0;
+
+          results.push({
+            Name: safeValue(s, nameCol, "Unknown"),
+            Email: safeValue(s, emailCol, "N/A"),
+            Roll: safeValue(s, rollCol, "N/A"),
+            Score: finalScore.toFixed(2),
+            "Actual Drift": driftScore.toFixed(2),
+            "Topic Alignment": `${alignmentPct}%`,
+            "Concept Coverage": `${coveragePct}%`,
+          });
+        } catch (e) {
+          console.error(`Error evaluating student ${idx}:`, e);
+          results.push({
+            Name: safeValue(s, "name", "Unknown"),
+            Email: safeValue(s, "email", "N/A"),
+            Roll: safeValue(s, "roll", "N/A"),
+            Score: "ERROR",
+            "Actual Drift": "N/A",
+            "Topic Alignment": "N/A",
+            "Concept Coverage": "N/A",
+          });
+        }
+
+        // Update progress
+        const progress = Math.round(((idx + 1) / studentData.length) * 100);
+        const progressBar = document.getElementById("eval-progress-bar");
+        const progressText = document.getElementById("eval-progress-text");
+        if (progressBar) progressBar.style.width = progress + "%";
+        if (progressText)
+          progressText.textContent = `${idx + 1} / ${studentData.length} evaluated`;
+      });
+
+      if (results.length === 0) {
+        showPopup(
+          "Processing Error",
+          "No students could be evaluated.",
+          "error",
+        );
+        return;
       }
 
-      // Update progress
-      const progress = Math.round(((idx + 1) / studentData.length) * 100);
-      const progressBar = document.getElementById("eval-progress-bar");
-      const progressText = document.getElementById("eval-progress-text");
-      if (progressBar) progressBar.style.width = progress + "%";
-      if (progressText)
-        progressText.textContent = `${idx + 1} / ${studentData.length} evaluated`;
-    });
-
-    // Remove progress overlay
-    const progressContainer = document.getElementById(
-      "eval-progress-container",
-    );
-    if (progressContainer) progressContainer.remove();
-
-    if (results.length === 0) {
-      showPopup("Processing Error", "No students could be evaluated.", "error");
-      return;
+      renderBatchResults(results, xlsxFileName);
+      showPopup(
+        "Class Evaluation Complete",
+        `Successfully evaluated ${results.length} students from ${xlsxFileName}`,
+        "success",
+      );
+    } catch (error) {
+      console.error("Class evaluation failed:", error);
+      showPopup(
+        "Class Evaluation Failed",
+        error.message || "Unable to evaluate class right now.",
+        "error",
+      );
+    } finally {
+      const progressContainer = document.getElementById(
+        "eval-progress-container",
+      );
+      if (progressContainer) progressContainer.remove();
+      setScriptEvalRunning(false);
     }
-
-    renderBatchResults(results, xlsxFileName);
-    showPopup(
-      "Class Evaluation Complete",
-      `Successfully evaluated ${results.length} students from ${xlsxFileName}`,
-      "success",
-    );
   });
 }

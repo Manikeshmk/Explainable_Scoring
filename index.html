@@ -335,6 +335,7 @@
             >
               <div
                 id="script-upload-zone"
+                class="upload-zone"
                 style="
                   border: 2px dashed var(--border-glass);
                   padding: 1.5rem;
@@ -344,7 +345,12 @@
                   cursor: pointer;
                 "
               >
-                Teacher .docx
+                <div style="font-weight: 600; margin-bottom: 0.35rem">
+                  Teacher .docx
+                </div>
+                <p class="upload-file-name" id="script-upload-filename">
+                  No file selected yet
+                </p>
                 <input
                   type="file"
                   id="script-file-input"
@@ -354,6 +360,7 @@
               </div>
               <div
                 id="summary-upload-zone"
+                class="upload-zone"
                 style="
                   border: 2px dashed var(--border-glass);
                   padding: 1.5rem;
@@ -363,7 +370,12 @@
                   cursor: pointer;
                 "
               >
-                Student .xlsx
+                <div style="font-weight: 600; margin-bottom: 0.35rem">
+                  Student .xlsx
+                </div>
+                <p class="upload-file-name" id="summary-upload-filename">
+                  No file selected yet
+                </p>
                 <input
                   type="file"
                   id="summary-file-input"
