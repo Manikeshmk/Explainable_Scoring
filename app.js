@@ -23,6 +23,22 @@ function checkLibrary(name) {
   return true;
 }
 
+function reRenderCanvasCharts() {
+  if (!window.lastEvalResult) return;
+  const { res, max } = window.lastEvalResult;
+  // Re-render purely canvas charts that depend on isLight logic
+  renderMetricRadar(res.features);
+  renderDriftTimeline(res.timeline);
+  renderConceptClusters(res.clusters);
+
+  const temporalMetrics = TemporalDriftTracker.computeTemporalMetrics();
+  if (temporalMetrics) {
+    if (typeof renderTemporalDriftAnalysis === "function") {
+      renderTemporalDriftAnalysis(temporalMetrics);
+    }
+  }
+}
+
 // Theme Toggle
 const themeToggle = document.getElementById("theme-toggle");
 if (themeToggle) {
@@ -31,6 +47,7 @@ if (themeToggle) {
     const next = current === "dark" ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", next);
     themeToggle.textContent = next === "dark" ? "☀️" : "🌙";
+    if (typeof reRenderCanvasCharts === "function") reRenderCanvasCharts();
   });
 }
 
@@ -251,7 +268,8 @@ function renderWaterfall(scoreObj, shap) {
 
   const positiveColor = getCssColor("--accent1", "#5be49b");
   const negativeColor = getCssColor("--danger", "#ff7070");
-  const axisColor = "rgba(255,255,255,0.14)";
+  const isLight = document.documentElement.getAttribute("data-theme") === "light";
+  const axisColor = isLight ? "rgba(15, 23, 42, 0.14)" : "rgba(255,255,255,0.14)";
   const textColor = getCssColor("--text", "#f4f5fb");
   const mutedColor = getCssColor("--text-muted", "#6d7385");
 
@@ -384,7 +402,8 @@ function renderMetricRadar(features) {
   const centerY = height / 2;
   const radius = Math.min(width, height) / 2 - 32;
   const steps = 5;
-  const outline = "rgba(255, 255, 255, 0.15)";
+  const isLight = document.documentElement.getAttribute("data-theme") === "light";
+  const outline = isLight ? "rgba(15, 23, 42, 0.3)" : "rgba(255, 255, 255, 0.15)";
   const accentStroke = getCssColor("--accent2", "#67b8ff");
   const accentFill = "rgba(103, 184, 255, 0.18)";
 
@@ -416,7 +435,7 @@ function renderMetricRadar(features) {
 
     const labelX = centerX + (radius + 10) * Math.cos(angle);
     const labelY = centerY + (radius + 10) * Math.sin(angle);
-    ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+    ctx.fillStyle = isLight ? "rgba(15, 23, 42, 0.85)" : "rgba(255, 255, 255, 0.85)";
     ctx.font = "12px var(--font-sans)";
     ctx.textAlign = labelX >= centerX ? "left" : "right";
     ctx.textBaseline = labelY >= centerY ? "top" : "bottom";
@@ -602,7 +621,8 @@ function renderDriftTimeline(timelineData) {
   const chartWidth = width - padding * 2;
   const chartHeight = height - padding * 2;
 
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+  const isLight = document.documentElement.getAttribute("data-theme") === "light";
+  ctx.strokeStyle = isLight ? "rgba(15, 23, 42, 0.2)" : "rgba(255, 255, 255, 0.2)";
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(padding, padding);
@@ -639,7 +659,7 @@ function renderDriftTimeline(timelineData) {
   ctx.fillStyle = "rgba(118, 104, 255, 0.08)";
   ctx.fill();
 
-  ctx.fillStyle = "#fff";
+  ctx.fillStyle = isLight ? "#0f172a" : "#fff";
   points.forEach((pt) => {
     ctx.beginPath();
     ctx.arc(pt.x, pt.y, 3.5, 0, Math.PI * 2);
@@ -716,19 +736,29 @@ function renderConceptClusters(clusters) {
   const ctx = canvas.getContext("2d");
   const w = canvas.width;
   const h = canvas.height;
+  const isLight = document.documentElement.getAttribute("data-theme") === "light";
 
   ctx.clearRect(0, 0, w, h);
+
+  // Deterministic pseudo-random based on fixed seed
+  function seededRandom(seed) {
+    return function() {
+      const x = Math.sin(seed++) * 10000;
+      return x - Math.floor(x);
+    };
+  }
+  const prng = seededRandom(42);
 
   // Dynamic placement
   const nodes = clusters.map((c, i) => ({
     ...c,
-    x: 50 + Math.random() * (w - 100),
-    y: 50 + Math.random() * (h - 100),
+    x: 50 + prng() * (w - 100),
+    y: 50 + prng() * (h - 100),
     r: 15 + c.similarity * 30,
   }));
 
   // Draw lines
-  ctx.strokeStyle = "rgba(108, 99, 255, 0.1)";
+  ctx.strokeStyle = isLight ? "rgba(108, 99, 255, 0.4)" : "rgba(108, 99, 255, 0.25)";
   ctx.lineWidth = 1;
   for (let i = 0; i < nodes.length; i++) {
     for (let j = i + 1; j < nodes.length; j++) {
@@ -747,14 +777,16 @@ function renderConceptClusters(clusters) {
     ctx.beginPath();
     ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
     ctx.fillStyle = n.covered
-      ? "rgba(74, 222, 128, 0.2)"
-      : "rgba(248, 113, 113, 0.1)";
+      ? (isLight ? "rgba(74, 222, 128, 0.35)" : "rgba(74, 222, 128, 0.2)")
+      : (isLight ? "rgba(248, 113, 113, 0.25)" : "rgba(248, 113, 113, 0.1)");
     ctx.fill();
-    ctx.strokeStyle = n.covered ? "#4ade80" : "rgba(248, 113, 113, 0.5)";
+    ctx.strokeStyle = n.covered 
+      ? (isLight ? "#22c55e" : "#4ade80")
+      : (isLight ? "rgba(239, 68, 68, 0.7)" : "rgba(248, 113, 113, 0.5)");
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = isLight ? "#0f172a" : "#fff";
     ctx.font = "600 10px Inter";
     ctx.textAlign = "center";
     ctx.fillText(
@@ -811,21 +843,21 @@ function renderTemporalDriftAnalysis(metrics) {
   // Fill in metrics
   const metricsDiv = document.getElementById("temporal-metrics");
   metricsDiv.innerHTML = `
-    <div style="padding: 0.75rem; background: rgba(255, 255, 255, 0.03); border-radius: var(--radius-sm); border: 1px solid var(--border-glass);">
+    <div style="padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--radius-sm); border: 1px solid var(--border-glass);">
       <span style="font-size: 0.8rem; color: var(--text-dim);">Submissions</span>
       <div style="font-size: 1.4rem; font-weight: 600; color: var(--primary);">${metrics.submissionCount}</div>
     </div>
-    <div style="padding: 0.75rem; background: rgba(255, 255, 255, 0.03); border-radius: var(--radius-sm); border: 1px solid var(--border-glass);">
+    <div style="padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--radius-sm); border: 1px solid var(--border-glass);">
       <span style="font-size: 0.8rem; color: var(--text-dim);">Improvement</span>
       <div style="font-size: 1.4rem; font-weight: 600; color: ${parseFloat(metrics.improvementScore) > 0 ? "var(--accent1)" : "var(--danger)"};">${metrics.improvementScore > 0 ? "+" : ""}${metrics.improvementScore}</div>
     </div>
-    <div style="padding: 0.75rem; background: rgba(255, 255, 255, 0.03); border-radius: var(--radius-sm); border: 1px solid var(--border-glass);">
+    <div style="padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--radius-sm); border: 1px solid var(--border-glass);">
       <span style="font-size: 0.8rem; color: var(--text-dim);">Consistency</span>
       <div style="font-size: 1.4rem; font-weight: 600; color: var(--primary);">${(parseFloat(metrics.consistencyScore) * 100).toFixed(0)}%</div>
     </div>
-    <div style="padding: 0.75rem; background: rgba(255, 255, 255, 0.03); border-radius: var(--radius-sm); border: 1px solid var(--border-glass);">
+    <div style="padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--radius-sm); border: 1px solid var(--border-glass);">
       <span style="font-size: 0.8rem; color: var(--text-dim);">Learning Trend</span>
-      <div style="font-size: 1.2rem; font-weight: 600;">
+      <div style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary);">
         ${metrics.driftTrend === "improving" ? "📈 Improving" : metrics.driftTrend === "degrading" ? "📉 Degrading" : "➡️ Stable"}
       </div>
     </div>
@@ -846,16 +878,17 @@ function drawTemporalChart(canvas, metrics) {
   const padding = 90; // Increased padding for spacing
   const graphWidth = width - padding * 2;
   const graphHeight = height - padding * 2;
+  const isLight = document.documentElement.getAttribute("data-theme") === "light";
 
   // ─── BACKGROUND ───
-  ctx.fillStyle = "rgba(12, 14, 35, 0.8)";
+  ctx.fillStyle = isLight ? "#f0f2f5" : "rgba(12, 14, 35, 0.8)";
   ctx.fillRect(0, 0, width, height);
 
-  ctx.fillStyle = "rgba(20, 25, 50, 0.6)";
+  ctx.fillStyle = isLight ? "#ffffff" : "rgba(20, 25, 50, 0.6)";
   ctx.fillRect(padding, padding, graphWidth, graphHeight);
 
   // ─── GRID LINES (BOLD) ───
-  ctx.strokeStyle = "rgba(100, 120, 200, 0.3)";
+  ctx.strokeStyle = isLight ? "rgba(15, 23, 42, 0.1)" : "rgba(100, 120, 200, 0.3)";
   ctx.lineWidth = 2;
   for (let i = 0; i <= 4; i++) {
     const y = padding + (graphHeight / 4) * i;
@@ -866,7 +899,7 @@ function drawTemporalChart(canvas, metrics) {
   }
 
   // ─── Y-AXIS LABELS (Score scale) ───
-  ctx.fillStyle = "rgba(200, 210, 255, 0.9)";
+  ctx.fillStyle = isLight ? "rgba(15, 23, 42, 0.85)" : "rgba(200, 210, 255, 0.9)";
   ctx.font = "bold 14px Inter";
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";
@@ -938,13 +971,13 @@ function drawTemporalChart(canvas, metrics) {
     ctx.fill();
 
     // Highlight
-    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+    ctx.fillStyle = isLight ? "rgba(15, 23, 42, 0.5)" : "rgba(255, 255, 255, 0.5)";
     ctx.beginPath();
     ctx.arc(x - 2, y - 2, 3, 0, Math.PI * 2);
     ctx.fill();
 
     // Score label above point
-    ctx.fillStyle = "rgba(200, 210, 255, 0.95)";
+    ctx.fillStyle = isLight ? "rgba(15, 23, 42, 0.95)" : "rgba(200, 210, 255, 0.95)";
     ctx.font = "bold 12px Inter";
     ctx.textAlign = "center";
     ctx.textBaseline = "bottom";
@@ -952,7 +985,7 @@ function drawTemporalChart(canvas, metrics) {
   });
 
   // ─── X-AXIS LABELS (Submission numbers) ───
-  ctx.fillStyle = "rgba(200, 210, 255, 0.9)";
+  ctx.fillStyle = isLight ? "rgba(15, 23, 42, 0.9)" : "rgba(200, 210, 255, 0.9)";
   ctx.font = "bold 13px Inter";
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
@@ -963,7 +996,7 @@ function drawTemporalChart(canvas, metrics) {
   });
 
   // ─── AXIS LABELS ───
-  ctx.fillStyle = "rgba(200, 210, 255, 0.8)";
+  ctx.fillStyle = isLight ? "rgba(15, 23, 42, 0.8)" : "rgba(200, 210, 255, 0.8)";
   ctx.font = "bold 15px Inter";
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
@@ -978,7 +1011,7 @@ function drawTemporalChart(canvas, metrics) {
   ctx.restore();
 
   // ─── AXES (BOLD BORDERS) ───
-  ctx.strokeStyle = "rgba(150, 170, 255, 0.6)";
+  ctx.strokeStyle = isLight ? "rgba(15, 23, 42, 0.6)" : "rgba(150, 170, 255, 0.6)";
   ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.moveTo(padding, padding);
@@ -1015,6 +1048,7 @@ if (demoForm) {
 
     try {
       const res = gradeAnswer(ref, stu, max);
+      window.lastEvalResult = { res, max };
 
       // Track this submission for temporal analysis
       TemporalDriftTracker.addSubmission(ref, stu, res.scoreObj, res.drift);
