@@ -1,718 +1,781 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ExplainGrade - Test Results & Performance Metrics</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 10px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-        }
-        
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: #333;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      header {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 10px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        color: #667eea;
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+
+      .subtitle {
+        color: #666;
+        font-size: 1.1em;
+        margin-bottom: 20px;
+      }
+
+      nav {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 15px;
+        margin-bottom: 30px;
+        border-radius: 8px;
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      nav a {
+        color: #667eea;
+        text-decoration: none;
+        padding: 8px 16px;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+      }
+
+      nav a:hover {
+        background: #667eea;
+        color: white;
+      }
+
+      nav a.active {
+        background: #764ba2;
+        color: white;
+      }
+
+      .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+      }
+
+      .metric-card {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        transition:
+          transform 0.3s ease,
+          box-shadow 0.3s ease;
+      }
+
+      .metric-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+      }
+
+      .metric-icon {
+        font-size: 2.5em;
+        margin-bottom: 15px;
+      }
+
+      .metric-label {
+        font-size: 0.9em;
+        color: #999;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .metric-value {
+        font-size: 2.5em;
+        font-weight: bold;
+        color: #667eea;
+        margin-bottom: 10px;
+      }
+
+      .metric-description {
+        font-size: 0.85em;
+        color: #666;
+        line-height: 1.5;
+      }
+
+      .charts-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 30px;
+        margin-bottom: 40px;
+      }
+
+      .chart-card {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      }
+
+      .chart-title {
+        font-size: 1.3em;
+        font-weight: bold;
+        color: #667eea;
+        margin-bottom: 20px;
+      }
+
+      .datasets-section {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      }
+
+      .datasets-title {
+        font-size: 1.5em;
+        color: #667eea;
+        margin-bottom: 20px;
+      }
+
+      .dataset-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .dataset-card {
+        background: #f8f9fa;
+        border-left: 4px solid #667eea;
+        padding: 15px;
+        border-radius: 5px;
+      }
+
+      .dataset-name {
+        font-weight: bold;
+        color: #667eea;
+        margin-bottom: 8px;
+      }
+
+      .dataset-stat {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9em;
+        margin: 5px 0;
+        color: #666;
+      }
+
+      .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8em;
+        font-weight: bold;
+        margin-top: 10px;
+      }
+
+      .status-ready {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .status-pending {
+        background: #fff3cd;
+        color: #856404;
+      }
+
+      .interpretation-section {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      }
+
+      .interpretation-title {
+        font-size: 1.5em;
+        color: #667eea;
+        margin-bottom: 20px;
+      }
+
+      .interpretation-item {
+        background: #f8f9fa;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+        border-left: 4px solid #764ba2;
+      }
+
+      .interpretation-metric {
+        font-weight: bold;
+        color: #764ba2;
+        margin-bottom: 5px;
+      }
+
+      .interpretation-text {
+        color: #666;
+        font-size: 0.95em;
+        line-height: 1.6;
+      }
+
+      footer {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 20px;
+        margin-top: 40px;
+        border-radius: 8px;
+        text-align: center;
+        color: #666;
+      }
+
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        font-size: 0.95em;
+      }
+
+      .comparison-table th {
+        background: #667eea;
+        color: white;
+        padding: 12px;
+        text-align: left;
+        font-weight: bold;
+      }
+
+      .comparison-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #eee;
+      }
+
+      .comparison-table tr:hover {
+        background: #f8f9fa;
+      }
+
+      .dataset-name-col {
+        font-weight: bold;
+        color: #667eea;
+      }
+
+      .success-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 8px;
+      }
+
+      .success-green {
+        background: #28a745;
+      }
+      .warning-yellow {
+        background: #ffc107;
+      }
+      .error-red {
+        background: #dc3545;
+      }
+
+      @media (max-width: 768px) {
         h1 {
-            color: #667eea;
-            font-size: 2.5em;
-            margin-bottom: 10px;
+          font-size: 1.8em;
         }
-        
-        .subtitle {
-            color: #666;
-            font-size: 1.1em;
-            margin-bottom: 20px;
-        }
-        
-        nav {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 15px;
-            margin-bottom: 30px;
-            border-radius: 8px;
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        nav a {
-            color: #667eea;
-            text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 5px;
-            transition: all 0.3s ease;
-        }
-        
-        nav a:hover {
-            background: #667eea;
-            color: white;
-        }
-        
-        nav a.active {
-            background: #764ba2;
-            color: white;
-        }
-        
         .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
+          grid-template-columns: 1fr;
         }
-        
-        .metric-card {
-            background: white;
-            border-radius: 10px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .metric-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
-        }
-        
-        .metric-icon {
-            font-size: 2.5em;
-            margin-bottom: 15px;
-        }
-        
-        .metric-label {
-            font-size: 0.9em;
-            color: #999;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .metric-value {
-            font-size: 2.5em;
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 10px;
-        }
-        
-        .metric-description {
-            font-size: 0.85em;
-            color: #666;
-            line-height: 1.5;
-        }
-        
         .charts-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 30px;
-            margin-bottom: 40px;
+          grid-template-columns: 1fr;
         }
-        
-        .chart-card {
-            background: white;
-            border-radius: 10px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        nav {
+          flex-direction: column;
         }
-        
-        .chart-title {
-            font-size: 1.3em;
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 20px;
-        }
-        
-        .datasets-section {
-            background: white;
-            border-radius: 10px;
-            padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-        
-        .datasets-title {
-            font-size: 1.5em;
-            color: #667eea;
-            margin-bottom: 20px;
-        }
-        
-        .dataset-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .dataset-card {
-            background: #f8f9fa;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            border-radius: 5px;
-        }
-        
-        .dataset-name {
-            font-weight: bold;
-            color: #667eea;
-            margin-bottom: 8px;
-        }
-        
-        .dataset-stat {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.9em;
-            margin: 5px 0;
-            color: #666;
-        }
-        
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8em;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-        
-        .status-ready {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .status-pending {
-            background: #fff3cd;
-            color: #856404;
-        }
-        
-        .interpretation-section {
-            background: white;
-            border-radius: 10px;
-            padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-        
-        .interpretation-title {
-            font-size: 1.5em;
-            color: #667eea;
-            margin-bottom: 20px;
-        }
-        
-        .interpretation-item {
-            background: #f8f9fa;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-            border-left: 4px solid #764ba2;
-        }
-        
-        .interpretation-metric {
-            font-weight: bold;
-            color: #764ba2;
-            margin-bottom: 5px;
-        }
-        
-        .interpretation-text {
-            color: #666;
-            font-size: 0.95em;
-            line-height: 1.6;
-        }
-        
-        footer {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 20px;
-            margin-top: 40px;
-            border-radius: 8px;
-            text-align: center;
-            color: #666;
-        }
-        
-        .comparison-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            font-size: 0.95em;
-        }
-        
-        .comparison-table th {
-            background: #667eea;
-            color: white;
-            padding: 12px;
-            text-align: left;
-            font-weight: bold;
-        }
-        
-        .comparison-table td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .comparison-table tr:hover {
-            background: #f8f9fa;
-        }
-        
-        .dataset-name-col {
-            font-weight: bold;
-            color: #667eea;
-        }
-        
-        .success-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-        
-        .success-green { background: #28a745; }
-        .warning-yellow { background: #ffc107; }
-        .error-red { background: #dc3545; }
-        
-        @media (max-width: 768px) {
-            h1 { font-size: 1.8em; }
-            .metrics-grid { grid-template-columns: 1fr; }
-            .charts-container { grid-template-columns: 1fr; }
-            nav { flex-direction: column; }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <!-- Header -->
-        <header>
-            <h1>📊 ExplainGrade Test Results</h1>
-            <p class="subtitle">Performance Metrics & Dataset Validation</p>
-            <div style="color: #999; font-size: 0.9em;">
-                Last Updated: <span id="timestamp">Loading...</span>
-            </div>
-        </header>
-        
-        <!-- Navigation -->
-        <nav>
-            <a href="index.html">🏠 Home</a>
-            <a href="analytics.html">📈 Analytics</a>
-            <a href="chat.html">💬 Chat</a>
-            <a href="technologies.html">🚀 Technologies</a>
-            <a href="test_results.html" class="active">✅ Test Results</a>
-        </nav>
-        
-        <!-- Key Metrics Grid -->
-        <div class="metrics-grid">
-            <div class="metric-card">
-                <div class="metric-icon">🔗</div>
-                <div class="metric-label">Pearson Correlation</div>
-                <div class="metric-value" id="pearson">Loading...</div>
-                <div class="metric-description">Measures semantic understanding quality</div>
-            </div>
-            
-            <div class="metric-card">
-                <div class="metric-icon">✓</div>
-                <div class="metric-label">Accuracy</div>
-                <div class="metric-value" id="accuracy">Loading...</div>
-                <div class="metric-description">% of correct predictions (±0.5 threshold)</div>
-            </div>
-            
-            <div class="metric-card">
-                <div class="metric-icon">📏</div>
-                <div class="metric-label">Mean Absolute Error</div>
-                <div class="metric-value" id="mae">Loading...</div>
-                <div class="metric-description">Average prediction deviation</div>
-            </div>
-            
-            <div class="metric-card">
-                <div class="metric-icon">📊</div>
-                <div class="metric-label">R-Squared (R²)</div>
-                <div class="metric-value" id="rsquared">Loading...</div>
-                <div class="metric-description">Variance explained fraction</div>
-            </div>
-            
-            <div class="metric-card">
-                <div class="metric-icon">🎓</div>
-                <div class="metric-label">Grade Agreement</div>
-                <div class="metric-value" id="gradeagreement">Loading...</div>
-                <div class="metric-description">Same grade level matching</div>
-            </div>
-            
-            <div class="metric-card">
-                <div class="metric-icon">📈</div>
-                <div class="metric-label">RMSE</div>
-                <div class="metric-value" id="rmse">Loading...</div>
-                <div class="metric-description">Root mean squared error</div>
-            </div>
+      <!-- Header -->
+      <header>
+        <h1>📊 ExplainGrade Test Results</h1>
+        <p class="subtitle">Performance Metrics & Dataset Validation</p>
+        <div style="color: #999; font-size: 0.9em">
+          Last Updated: <span id="timestamp">Loading...</span>
         </div>
-        
-        <!-- Charts -->
-        <div class="charts-container">
-            <div class="chart-card">
-                <div class="chart-title">📊 Prediction Distribution</div>
-                <canvas id="predictionChart"></canvas>
-            </div>
-            
-            <div class="chart-card">
-                <div class="chart-title">🎯 Predicted vs Expected</div>
-                <canvas id="comparisonChart"></canvas>
-            </div>
+      </header>
+
+      <!-- Navigation -->
+      <nav>
+        <a href="index.html">🏠 Home</a>
+        <a href="analytics.html">📈 Analytics</a>
+        <a href="chat.html">💬 Chat</a>
+        <a href="technologies.html">🚀 Technologies</a>
+        <a href="test_results.html" class="active">✅ Test Results</a>
+      </nav>
+
+      <!-- Key Metrics Grid -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-icon">🔗</div>
+          <div class="metric-label">Pearson Correlation</div>
+          <div class="metric-value" id="pearson">Loading...</div>
+          <div class="metric-description">
+            Measures semantic understanding quality
+          </div>
         </div>
-        
-        <!-- Datasets Section -->
-        <div class="datasets-section">
-            <h2 class="datasets-title">📊 Test Datasets</h2>
-            
-            <table class="comparison-table">
-                <thead>
-                    <tr>
-                        <th>Dataset</th>
-                        <th>Size</th>
-                        <th>Domain</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><span class="success-indicator success-green"></span><span class="dataset-name-col">SQuAD (Stanford)</span></td>
-                        <td>100K+ Q&A pairs</td>
-                        <td>Wikipedia reading comprehension</td>
-                        <td><span class="status-badge status-ready">✓ Ready</span></td>
-                    </tr>
-                    <tr>
-                        <td><span class="success-indicator success-green"></span><span class="dataset-name-col">Mohler Dataset</span></td>
-                        <td>2,442 grades</td>
-                        <td>Short answer grading (Software Engineering)</td>
-                        <td><span class="status-badge status-ready">✓ Ready</span></td>
-                    </tr>
-                    <tr>
-                        <td><span class="success-indicator success-green"></span><span class="dataset-name-col">Combined Test</span></td>
-                        <td>2,500+ samples</td>
-                        <td>Multi-domain validation</td>
-                        <td><span class="status-badge status-ready">✓ Ready</span></td>
-                    </tr>
-                </tbody>
-            </table>
+
+        <div class="metric-card">
+          <div class="metric-icon">✓</div>
+          <div class="metric-label">Accuracy</div>
+          <div class="metric-value" id="accuracy">Loading...</div>
+          <div class="metric-description">
+            % of correct predictions (±0.5 threshold)
+          </div>
         </div>
-        
-        <!-- Interpretation Section -->
-        <div class="interpretation-section">
-            <h2 class="interpretation-title">📖 Metric Interpretations</h2>
-            
-            <div class="interpretation-item">
-                <div class="interpretation-metric">🔗 Pearson Correlation Coefficient (-1 to 1)</div>
-                <div class="interpretation-text">
-                    <strong>What it measures:</strong> Linear relationship between predicted and expected scores.<br>
-                    <strong>Values:</strong> <span id="pearson-interpretation">Loading...</span><br>
-                    <strong>Interpretation:</strong> Values > 0.7 indicate strong agreement with expected grading patterns.
-                </div>
-            </div>
-            
-            <div class="interpretation-item">
-                <div class="interpretation-metric">✓ Accuracy (%)</div>
-                <div class="interpretation-text">
-                    <strong>What it measures:</strong> Percentage of predictions within acceptable threshold (±0.5 points).<br>
-                    <strong>Calculation:</strong> (Correct Predictions / Total) × 100<br>
-                    <strong>Target:</strong> >85% accuracy for production deployment.
-                </div>
-            </div>
-            
-            <div class="interpretation-item">
-                <div class="interpretation-metric">📏 Mean Absolute Error (MAE)</div>
-                <div class="interpretation-text">
-                    <strong>What it measures:</strong> Average absolute difference between predicted and expected scores.<br>
-                    <strong>Unit:</strong> Points (0-10 scale)<br>
-                    <strong>Target:</strong> <0.5 points for high-quality grading.
-                </div>
-            </div>
-            
-            <div class="interpretation-item">
-                <div class="interpretation-metric">📊 R-Squared (0 to 1)</div>
-                <div class="interpretation-text">
-                    <strong>What it measures:</strong> Proportion of variance in expected scores explained by predictions.<br>
-                    <strong>Values:</strong> 0.5+ is acceptable, 0.7+ is strong, 0.9+ is excellent.<br>
-                    <strong>Interpretation:</strong> R² = 0.85 means 85% of grade variation is properly captured.
-                </div>
-            </div>
-            
-            <div class="interpretation-item">
-                <div class="interpretation-metric">🎓 Grade Agreement (%)</div>
-                <div class="interpretation-text">
-                    <strong>What it measures:</strong> Percentage of predictions in same letter grade (A/B/C/D/F) as expected.<br>
-                    <strong>Grades:</strong> F(0-2), D(2-4), C(4-6), B(6-8), A(8-10)<br>
-                    <strong>Target:</strong> >90% for consistent grade assignment.
-                </div>
-            </div>
-            
-            <div class="interpretation-item">
-                <div class="interpretation-metric">📈 RMSE (Root Mean Squared Error)</div>
-                <div class="interpretation-text">
-                    <strong>What it measures:</strong> Square root of average squared differences (penalizes large errors).<br>
-                    <strong>vs MAE:</strong> More sensitive to outliers than MAE.<br>
-                    <strong>Target:</strong> <0.6 points for robust grading.
-                </div>
-            </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">📏</div>
+          <div class="metric-label">Mean Absolute Error</div>
+          <div class="metric-value" id="mae">Loading...</div>
+          <div class="metric-description">Average prediction deviation</div>
         </div>
-        
-        <!-- Performance Benchmarks -->
-        <div class="interpretation-section">
-            <h2 class="interpretation-title">⚡ Performance Benchmarks</h2>
-            
-            <table class="comparison-table" id="benchmarkTable">
-                <thead>
-                    <tr>
-                        <th>Metric</th>
-                        <th>ExplainGrade</th>
-                        <th>Industry Standard</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Pearson Correlation</td>
-                        <td id="bench-pearson">Computing...</td>
-                        <td>0.70+</td>
-                        <td id="bench-pearson-status">—</td>
-                    </tr>
-                    <tr>
-                        <td>Accuracy</td>
-                        <td id="bench-accuracy">Computing...</td>
-                        <td>85%+</td>
-                        <td id="bench-accuracy-status">—</td>
-                    </tr>
-                    <tr>
-                        <td>MAE</td>
-                        <td id="bench-mae">Computing...</td>
-                        <td><0.5</td>
-                        <td id="bench-mae-status">—</td>
-                    </tr>
-                    <tr>
-                        <td>R-Squared</td>
-                        <td id="bench-rsquared">Computing...</td>
-                        <td>0.70+</td>
-                        <td id="bench-rsquared-status">—</td>
-                    </tr>
-                </tbody>
-            </table>
+
+        <div class="metric-card">
+          <div class="metric-icon">📊</div>
+          <div class="metric-label">R-Squared (R²)</div>
+          <div class="metric-value" id="rsquared">Loading...</div>
+          <div class="metric-description">Variance explained fraction</div>
         </div>
-        
-        <!-- Footer -->
-        <footer>
-            <p>ExplainGrade - Automated Short Answer Grading System</p>
-            <p>Built with BERT Transformers | Tested on SQuAD & Mohler Datasets</p>
-            <p>Cloud Computing & AI Service Course Project</p>
-        </footer>
+
+        <div class="metric-card">
+          <div class="metric-icon">🎓</div>
+          <div class="metric-label">Grade Agreement</div>
+          <div class="metric-value" id="gradeagreement">Loading...</div>
+          <div class="metric-description">Same grade level matching</div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">📈</div>
+          <div class="metric-label">RMSE</div>
+          <div class="metric-value" id="rmse">Loading...</div>
+          <div class="metric-description">Root mean squared error</div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-container">
+        <div class="chart-card">
+          <div class="chart-title">📊 Prediction Distribution</div>
+          <canvas id="predictionChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title">🎯 Predicted vs Expected</div>
+          <canvas id="comparisonChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Datasets Section -->
+      <div class="datasets-section">
+        <h2 class="datasets-title">📊 Test Datasets</h2>
+
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Dataset</th>
+              <th>Size</th>
+              <th>Domain</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <span class="success-indicator success-green"></span
+                ><span class="dataset-name-col">SQuAD (Stanford)</span>
+              </td>
+              <td>100K+ Q&A pairs</td>
+              <td>Wikipedia reading comprehension</td>
+              <td><span class="status-badge status-ready">✓ Ready</span></td>
+            </tr>
+            <tr>
+              <td>
+                <span class="success-indicator success-green"></span
+                ><span class="dataset-name-col">Mohler Dataset</span>
+              </td>
+              <td>2,442 grades</td>
+              <td>Short answer grading (Software Engineering)</td>
+              <td><span class="status-badge status-ready">✓ Ready</span></td>
+            </tr>
+            <tr>
+              <td>
+                <span class="success-indicator success-green"></span
+                ><span class="dataset-name-col">Combined Test</span>
+              </td>
+              <td>2,500+ samples</td>
+              <td>Multi-domain validation</td>
+              <td><span class="status-badge status-ready">✓ Ready</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Interpretation Section -->
+      <div class="interpretation-section">
+        <h2 class="interpretation-title">📖 Metric Interpretations</h2>
+
+        <div class="interpretation-item">
+          <div class="interpretation-metric">
+            🔗 Pearson Correlation Coefficient (-1 to 1)
+          </div>
+          <div class="interpretation-text">
+            <strong>What it measures:</strong> Linear relationship between
+            predicted and expected scores.<br />
+            <strong>Values:</strong>
+            <span id="pearson-interpretation">Loading...</span><br />
+            <strong>Interpretation:</strong> Values > 0.7 indicate strong
+            agreement with expected grading patterns.
+          </div>
+        </div>
+
+        <div class="interpretation-item">
+          <div class="interpretation-metric">✓ Accuracy (%)</div>
+          <div class="interpretation-text">
+            <strong>What it measures:</strong> Percentage of predictions within
+            acceptable threshold (±0.5 points).<br />
+            <strong>Calculation:</strong> (Correct Predictions / Total) × 100<br />
+            <strong>Target:</strong> >85% accuracy for production deployment.
+          </div>
+        </div>
+
+        <div class="interpretation-item">
+          <div class="interpretation-metric">📏 Mean Absolute Error (MAE)</div>
+          <div class="interpretation-text">
+            <strong>What it measures:</strong> Average absolute difference
+            between predicted and expected scores.<br />
+            <strong>Unit:</strong> Points (0-10 scale)<br />
+            <strong>Target:</strong> <0.5 points for high-quality grading.
+          </div>
+        </div>
+
+        <div class="interpretation-item">
+          <div class="interpretation-metric">📊 R-Squared (0 to 1)</div>
+          <div class="interpretation-text">
+            <strong>What it measures:</strong> Proportion of variance in
+            expected scores explained by predictions.<br />
+            <strong>Values:</strong> 0.5+ is acceptable, 0.7+ is strong, 0.9+ is
+            excellent.<br />
+            <strong>Interpretation:</strong> R² = 0.85 means 85% of grade
+            variation is properly captured.
+          </div>
+        </div>
+
+        <div class="interpretation-item">
+          <div class="interpretation-metric">🎓 Grade Agreement (%)</div>
+          <div class="interpretation-text">
+            <strong>What it measures:</strong> Percentage of predictions in same
+            letter grade (A/B/C/D/F) as expected.<br />
+            <strong>Grades:</strong> F(0-2), D(2-4), C(4-6), B(6-8), A(8-10)<br />
+            <strong>Target:</strong> >90% for consistent grade assignment.
+          </div>
+        </div>
+
+        <div class="interpretation-item">
+          <div class="interpretation-metric">
+            📈 RMSE (Root Mean Squared Error)
+          </div>
+          <div class="interpretation-text">
+            <strong>What it measures:</strong> Square root of average squared
+            differences (penalizes large errors).<br />
+            <strong>vs MAE:</strong> More sensitive to outliers than MAE.<br />
+            <strong>Target:</strong> <0.6 points for robust grading.
+          </div>
+        </div>
+      </div>
+
+      <!-- Performance Benchmarks -->
+      <div class="interpretation-section">
+        <h2 class="interpretation-title">⚡ Performance Benchmarks</h2>
+
+        <table class="comparison-table" id="benchmarkTable">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>ExplainGrade</th>
+              <th>Industry Standard</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Pearson Correlation</td>
+              <td id="bench-pearson">Computing...</td>
+              <td>0.70+</td>
+              <td id="bench-pearson-status">—</td>
+            </tr>
+            <tr>
+              <td>Accuracy</td>
+              <td id="bench-accuracy">Computing...</td>
+              <td>85%+</td>
+              <td id="bench-accuracy-status">—</td>
+            </tr>
+            <tr>
+              <td>MAE</td>
+              <td id="bench-mae">Computing...</td>
+              <td><0.5</td>
+              <td id="bench-mae-status">—</td>
+            </tr>
+            <tr>
+              <td>R-Squared</td>
+              <td id="bench-rsquared">Computing...</td>
+              <td>0.70+</td>
+              <td id="bench-rsquared-status">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer -->
+      <footer>
+        <p>ExplainGrade - Automated Short Answer Grading System</p>
+        <p>Built with BERT Transformers | Tested on SQuAD & Mohler Datasets</p>
+        <p>Cloud Computing & AI Service Course Project</p>
+      </footer>
     </div>
-    
+
     <script>
-        // Sample metrics data (will be replaced with actual data once metrics.py runs)
-        const sampleMetrics = {
-            pearson: {
-                correlation: 0.847,
-                p_value: 0.000001,
-                interpretation: "Strong correlation"
-            },
-            accuracy: {
-                accuracy: 89.23,
-                correct_predictions: 447,
-                total_predictions: 501
-            },
-            mae: {
-                mae: 0.34,
-                interpretation: "Average prediction off by 0.34 points"
-            },
-            rmse: {
-                rmse: 0.52,
-                mse: 0.2704
-            },
-            r_squared: {
-                r_squared: 0.718,
-                interpretation: "71.8% of variance explained"
-            },
-            grade_agreement: {
-                grade_agreement: 92.41,
-                agreed: 463,
-                total: 501
-            },
-            basic_stats: {
-                predicted_mean: 6.82,
-                predicted_std: 2.14,
-                expected_mean: 6.75,
-                expected_std: 2.31
-            }
-        };
-        
-        // Load actual metrics if available
-        async function loadMetrics() {
-            try {
-                const response = await fetch('test_results.json');
-                if (response.ok) {
-                    return await response.json();
-                }
-            } catch (e) {
-                console.log("Using sample metrics (test_results.json not found)");
-            }
-            return sampleMetrics;
+      // Sample metrics data (will be replaced with actual data once metrics.py runs)
+      const sampleMetrics = {
+        pearson: {
+          correlation: 0.847,
+          p_value: 0.000001,
+          interpretation: "Strong correlation",
+        },
+        accuracy: {
+          accuracy: 89.23,
+          correct_predictions: 447,
+          total_predictions: 501,
+        },
+        mae: {
+          mae: 0.34,
+          interpretation: "Average prediction off by 0.34 points",
+        },
+        rmse: {
+          rmse: 0.52,
+          mse: 0.2704,
+        },
+        r_squared: {
+          r_squared: 0.718,
+          interpretation: "71.8% of variance explained",
+        },
+        grade_agreement: {
+          grade_agreement: 92.41,
+          agreed: 463,
+          total: 501,
+        },
+        basic_stats: {
+          predicted_mean: 6.82,
+          predicted_std: 2.14,
+          expected_mean: 6.75,
+          expected_std: 2.31,
+        },
+      };
+
+      // Load actual metrics if available
+      async function loadMetrics() {
+        try {
+          const response = await fetch("test_results.json");
+          if (response.ok) {
+            return await response.json();
+          }
+        } catch (e) {
+          console.log("Using sample metrics (test_results.json not found)");
         }
-        
-        async function initializeMetrics() {
-            const metrics = await loadMetrics();
-            
-            // Update timestamp
-            document.getElementById('timestamp').textContent = new Date().toLocaleString();
-            
-            // Update metric cards
-            if (metrics.pearson) {
-                document.getElementById('pearson').textContent = metrics.pearson.correlation.toFixed(3);
-                document.getElementById('pearson-interpretation').textContent = metrics.pearson.interpretation;
-            }
-            
-            if (metrics.accuracy) {
-                document.getElementById('accuracy').textContent = metrics.accuracy.accuracy.toFixed(1) + '%';
-            }
-            
-            if (metrics.mae) {
-                document.getElementById('mae').textContent = metrics.mae.mae.toFixed(3);
-            }
-            
-            if (metrics.rmse) {
-                document.getElementById('rmse').textContent = metrics.rmse.rmse.toFixed(3);
-            }
-            
-            if (metrics.r_squared) {
-                document.getElementById('rsquared').textContent = metrics.r_squared.r_squared.toFixed(3);
-            }
-            
-            if (metrics.grade_agreement) {
-                document.getElementById('gradeagreement').textContent = metrics.grade_agreement.grade_agreement.toFixed(1) + '%';
-            }
-            
-            // Update benchmark table
-            updateBenchmarks(metrics);
-            
-            // Create charts
-            createCharts(metrics);
+        return sampleMetrics;
+      }
+
+      async function initializeMetrics() {
+        const metrics = await loadMetrics();
+
+        // Update timestamp
+        document.getElementById("timestamp").textContent =
+          new Date().toLocaleString();
+
+        // Update metric cards
+        if (metrics.pearson) {
+          document.getElementById("pearson").textContent =
+            metrics.pearson.correlation.toFixed(3);
+          document.getElementById("pearson-interpretation").textContent =
+            metrics.pearson.interpretation;
         }
-        
-        function updateBenchmarks(metrics) {
-            // Pearson
-            if (metrics.pearson) {
-                const pearson = metrics.pearson.correlation;
-                document.getElementById('bench-pearson').textContent = pearson.toFixed(3);
-                const pearsonStatus = pearson >= 0.70 ? '✅ Pass' : '⚠️ Below Target';
-                document.getElementById('bench-pearson-status').textContent = pearsonStatus;
-            }
-            
-            // Accuracy
-            if (metrics.accuracy) {
-                const accuracy = metrics.accuracy.accuracy;
-                document.getElementById('bench-accuracy').textContent = accuracy.toFixed(1) + '%';
-                const accStatus = accuracy >= 85 ? '✅ Pass' : '⚠️ Below Target';
-                document.getElementById('bench-accuracy-status').textContent = accStatus;
-            }
-            
-            // MAE
-            if (metrics.mae) {
-                const mae = metrics.mae.mae;
-                document.getElementById('bench-mae').textContent = mae.toFixed(3);
-                const maeStatus = mae < 0.5 ? '✅ Pass' : '⚠️ Below Target';
-                document.getElementById('bench-mae-status').textContent = maeStatus;
-            }
-            
-            // R-Squared
-            if (metrics.r_squared) {
-                const rsq = metrics.r_squared.r_squared;
-                document.getElementById('bench-rsquared').textContent = rsq.toFixed(3);
-                const rsqStatus = rsq >= 0.70 ? '✅ Pass' : '⚠️ Below Target';
-                document.getElementById('bench-rsquared-status').textContent = rsqStatus;
-            }
+
+        if (metrics.accuracy) {
+          document.getElementById("accuracy").textContent =
+            metrics.accuracy.accuracy.toFixed(1) + "%";
         }
-        
-        function createCharts(metrics) {
-            // Distribution chart
-            const predCtx = document.getElementById('predictionChart').getContext('2d');
-            new Chart(predCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['0-2 (F)', '2-4 (D)', '4-6 (C)', '6-8 (B)', '8-10 (A)'],
-                    datasets: [{
-                        label: 'Predicted Scores',
-                        data: [15, 45, 120, 200, 121],
-                        backgroundColor: [
-                            '#dc3545',
-                            '#ffc107',
-                            '#17a2b8',
-                            '#28a745',
-                            '#007bff'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { position: 'top' }
-                    },
-                    scales: {
-                        y: { beginAtZero: true }
-                    }
-                }
-            });
-            
-            // Comparison scatter-like chart
-            const compCtx = document.getElementById('comparisonChart').getContext('2d');
-            new Chart(compCtx, {
-                type: 'line',
-                data: {
-                    labels: Array.from({length: 50}, (_, i) => i + 1),
-                    datasets: [
-                        {
-                            label: 'Predicted Scores',
-                            data: Array.from({length: 50}, () => Math.random() * 10),
-                            borderColor: '#667eea',
-                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Expected Scores',
-                            data: Array.from({length: 50}, () => Math.random() * 10),
-                            borderColor: '#764ba2',
-                            backgroundColor: 'rgba(118, 75, 162, 0.1)',
-                            tension: 0.4
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { position: 'top' }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 10
-                        }
-                    }
-                }
-            });
+
+        if (metrics.mae) {
+          document.getElementById("mae").textContent =
+            metrics.mae.mae.toFixed(3);
         }
-        
-        // Initialize on load
-        window.addEventListener('load', initializeMetrics);
+
+        if (metrics.rmse) {
+          document.getElementById("rmse").textContent =
+            metrics.rmse.rmse.toFixed(3);
+        }
+
+        if (metrics.r_squared) {
+          document.getElementById("rsquared").textContent =
+            metrics.r_squared.r_squared.toFixed(3);
+        }
+
+        if (metrics.grade_agreement) {
+          document.getElementById("gradeagreement").textContent =
+            metrics.grade_agreement.grade_agreement.toFixed(1) + "%";
+        }
+
+        // Update benchmark table
+        updateBenchmarks(metrics);
+
+        // Create charts
+        createCharts(metrics);
+      }
+
+      function updateBenchmarks(metrics) {
+        // Pearson
+        if (metrics.pearson) {
+          const pearson = metrics.pearson.correlation;
+          document.getElementById("bench-pearson").textContent =
+            pearson.toFixed(3);
+          const pearsonStatus = pearson >= 0.7 ? "✅ Pass" : "⚠️ Below Target";
+          document.getElementById("bench-pearson-status").textContent =
+            pearsonStatus;
+        }
+
+        // Accuracy
+        if (metrics.accuracy) {
+          const accuracy = metrics.accuracy.accuracy;
+          document.getElementById("bench-accuracy").textContent =
+            accuracy.toFixed(1) + "%";
+          const accStatus = accuracy >= 85 ? "✅ Pass" : "⚠️ Below Target";
+          document.getElementById("bench-accuracy-status").textContent =
+            accStatus;
+        }
+
+        // MAE
+        if (metrics.mae) {
+          const mae = metrics.mae.mae;
+          document.getElementById("bench-mae").textContent = mae.toFixed(3);
+          const maeStatus = mae < 0.5 ? "✅ Pass" : "⚠️ Below Target";
+          document.getElementById("bench-mae-status").textContent = maeStatus;
+        }
+
+        // R-Squared
+        if (metrics.r_squared) {
+          const rsq = metrics.r_squared.r_squared;
+          document.getElementById("bench-rsquared").textContent =
+            rsq.toFixed(3);
+          const rsqStatus = rsq >= 0.7 ? "✅ Pass" : "⚠️ Below Target";
+          document.getElementById("bench-rsquared-status").textContent =
+            rsqStatus;
+        }
+      }
+
+      function createCharts(metrics) {
+        // Distribution chart
+        const predCtx = document
+          .getElementById("predictionChart")
+          .getContext("2d");
+        new Chart(predCtx, {
+          type: "bar",
+          data: {
+            labels: ["0-2 (F)", "2-4 (D)", "4-6 (C)", "6-8 (B)", "8-10 (A)"],
+            datasets: [
+              {
+                label: "Predicted Scores",
+                data: [15, 45, 120, 200, 121],
+                backgroundColor: [
+                  "#dc3545",
+                  "#ffc107",
+                  "#17a2b8",
+                  "#28a745",
+                  "#007bff",
+                ],
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: "top" },
+            },
+            scales: {
+              y: { beginAtZero: true },
+            },
+          },
+        });
+
+        // Comparison scatter-like chart
+        const compCtx = document
+          .getElementById("comparisonChart")
+          .getContext("2d");
+        new Chart(compCtx, {
+          type: "line",
+          data: {
+            labels: Array.from({ length: 50 }, (_, i) => i + 1),
+            datasets: [
+              {
+                label: "Predicted Scores",
+                data: Array.from({ length: 50 }, () => Math.random() * 10),
+                borderColor: "#667eea",
+                backgroundColor: "rgba(102, 126, 234, 0.1)",
+                tension: 0.4,
+              },
+              {
+                label: "Expected Scores",
+                data: Array.from({ length: 50 }, () => Math.random() * 10),
+                borderColor: "#764ba2",
+                backgroundColor: "rgba(118, 75, 162, 0.1)",
+                tension: 0.4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: "top" },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 10,
+              },
+            },
+          },
+        });
+      }
+
+      // Initialize on load
+      window.addEventListener("load", initializeMetrics);
     </script>
-</body>
+  </body>
 </html>

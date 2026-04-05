@@ -1,170 +1,192 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" data-theme="dark">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chat Assistant — ExplainGrade AI</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
     <style>
-        .chat-layout {
-            display: grid;
-            grid-template-columns: 1fr 300px;
-            gap: 2rem;
-            height: calc(100vh - 250px);
-            margin-top: 2rem;
-        }
+      .chat-layout {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 2rem;
+        height: calc(100vh - 250px);
+        margin-top: 2rem;
+      }
 
-        .chat-main {
-            display: flex;
-            flex-direction: column;
-            background: var(--bg-card);
-            backdrop-filter: var(--glass-blur);
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border-glass);
-            overflow: hidden;
-        }
+      .chat-main {
+        display: flex;
+        flex-direction: column;
+        background: var(--bg-card);
+        backdrop-filter: var(--glass-blur);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border-glass);
+        overflow: hidden;
+      }
 
-        .chat-messages {
-            flex: 1;
-            padding: 2rem;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
+      .chat-messages {
+        flex: 1;
+        padding: 2rem;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
 
-        .message {
-            max-width: 80%;
-            padding: 1rem 1.5rem;
-            border-radius: var(--radius-md);
-            font-size: 0.95rem;
-        }
+      .message {
+        max-width: 80%;
+        padding: 1rem 1.5rem;
+        border-radius: var(--radius-md);
+        font-size: 0.95rem;
+      }
 
-        .message-ai {
-            background: rgba(108, 99, 255, 0.1);
-            align-self: flex-start;
-            border-bottom-left-radius: 0;
-            border: 1px solid var(--border-glass);
-        }
+      .message-ai {
+        background: rgba(108, 99, 255, 0.1);
+        align-self: flex-start;
+        border-bottom-left-radius: 0;
+        border: 1px solid var(--border-glass);
+      }
 
-        .message-user {
-            background: var(--primary);
-            color: #fff;
-            align-self: flex-end;
-            border-bottom-right-radius: 0;
-        }
+      .message-user {
+        background: var(--primary);
+        color: #fff;
+        align-self: flex-end;
+        border-bottom-right-radius: 0;
+      }
 
-        .chat-input-area {
-            padding: 1.5rem;
-            border-top: 1px solid var(--border-glass);
-            display: flex;
-            gap: 1rem;
-        }
+      .chat-input-area {
+        padding: 1.5rem;
+        border-top: 1px solid var(--border-glass);
+        display: flex;
+        gap: 1rem;
+      }
 
-        .suggestion-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
+      .suggestion-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
 
-        .suggestion-item {
-            padding: 0.75rem 1rem;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-glass);
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: var(--transition);
-        }
+      .suggestion-item {
+        padding: 0.75rem 1rem;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-glass);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: var(--transition);
+      }
 
-        .suggestion-item:hover {
-            background: var(--border-focus);
-            border-color: var(--primary);
-        }
+      .suggestion-item:hover {
+        background: var(--border-focus);
+        border-color: var(--primary);
+      }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
     <div class="bg-blobs">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-3"></div>
+      <div class="blob blob-1"></div>
+      <div class="blob blob-3"></div>
     </div>
 
     <nav class="navbar" id="navbar">
-        <div class="container">
-            <a href="index.html" class="nav-logo">🔬 ExplainGrade</a>
-            <ul class="nav-links">
-                <li><a href="index.html" class="nav-link">Home</a></li>
-                <li><a href="pipeline.html" class="nav-link">Pipeline</a></li>
-                <li><a href="research.html" class="nav-link">Research</a></li>
-                <li><a href="usage.html" class="nav-link">How to Use</a></li>
-                <li><a href="chat.html" class="nav-link active">Assistant 💬</a></li>
-                <li><a href="analytics.html" class="nav-link">Analytics 📊</a></li>
-                <li><a href="technologies.html" class="nav-link">Technologies 🔧</a></li>
-                <li><a href="test_results.html" class="nav-link">Test Results ✅</a></li>
-            </ul>
-        </div>
+      <div class="container">
+        <a href="index.html" class="nav-logo">🔬 ExplainGrade</a>
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="pipeline.html" class="nav-link">Pipeline</a></li>
+          <li><a href="research.html" class="nav-link">Research</a></li>
+          <li><a href="usage.html" class="nav-link">How to Use</a></li>
+          <li><a href="chat.html" class="nav-link active">Assistant 💬</a></li>
+          <li><a href="analytics.html" class="nav-link">Analytics 📊</a></li>
+          <li>
+            <a href="technologies.html" class="nav-link">Technologies 🔧</a>
+          </li>
+          <li>
+            <a href="test_results.html" class="nav-link">Test Results ✅</a>
+          </li>
+        </ul>
+      </div>
     </nav>
 
-    <main class="container" style="margin-top: 100px;">
-        <span class="badge">Chat Assistant</span>
-        <h1 style="font-size: 2.5rem; font-weight: 800;">Ask questions about student scores</h1>
+    <main class="container" style="margin-top: 100px">
+      <span class="badge">Chat Assistant</span>
+      <h1 style="font-size: 2.5rem; font-weight: 800">
+        Ask questions about student scores
+      </h1>
 
-        <div class="chat-layout">
-            <div class="chat-main">
-                <div class="chat-messages" id="chat-messages">
-                    <div class="message message-ai">
-                        Hello! I'm your AI assistant for ExplainGrade. I can help you analyze student performance,
-                        clarify scoring logic, and summarize results. Ask me anything!
-                    </div>
-                </div>
-                <div class="chat-input-area">
-                    <textarea id="chat-input" class="form-control"
-                        placeholder="Ask me about student averages, top performers, or how the system works..."
-                        rows="2"></textarea>
-                    <button id="chat-send" class="btn btn-primary" style="align-self: flex-end;">Send 💬</button>
-                </div>
+      <div class="chat-layout">
+        <div class="chat-main">
+          <div class="chat-messages" id="chat-messages">
+            <div class="message message-ai">
+              Hello! I'm your AI assistant for ExplainGrade. I can help you
+              analyze student performance, clarify scoring logic, and summarize
+              results. Ask me anything!
             </div>
-
-            <div class="chat-sidebar">
-                <h3 class="mb-4" style="font-size: 1.1rem; font-weight: 700;">💡 Try Asking:</h3>
-                <div class="suggestion-list">
-                    <div class="suggestion-item">Who has the highest score?</div>
-                    <div class="suggestion-item">What's the class average?</div>
-                    <div class="suggestion-item">How many students scored below 50%?</div>
-                    <div class="suggestion-item">Explain the Two-Stage logic.</div>
-                    <div class="suggestion-item">Show all students above 8.0.</div>
-                </div>
-
-                <div class="glass-card" style="margin-top: 2rem; padding: 1rem;">
-                    <p style="font-size: 0.8rem; color: var(--text-muted);">This assistant uses local context from your
-                        loaded data (CSV/XLSX) if available.</p>
-                </div>
-            </div>
+          </div>
+          <div class="chat-input-area">
+            <textarea
+              id="chat-input"
+              class="form-control"
+              placeholder="Ask me about student averages, top performers, or how the system works..."
+              rows="2"
+            ></textarea>
+            <button
+              id="chat-send"
+              class="btn btn-primary"
+              style="align-self: flex-end"
+            >
+              Send 💬
+            </button>
+          </div>
         </div>
+
+        <div class="chat-sidebar">
+          <h3 class="mb-4" style="font-size: 1.1rem; font-weight: 700">
+            💡 Try Asking:
+          </h3>
+          <div class="suggestion-list">
+            <div class="suggestion-item">Who has the highest score?</div>
+            <div class="suggestion-item">What's the class average?</div>
+            <div class="suggestion-item">
+              How many students scored below 50%?
+            </div>
+            <div class="suggestion-item">Explain the Two-Stage logic.</div>
+            <div class="suggestion-item">Show all students above 8.0.</div>
+          </div>
+
+          <div class="glass-card" style="margin-top: 2rem; padding: 1rem">
+            <p style="font-size: 0.8rem; color: var(--text-muted)">
+              This assistant uses local context from your loaded data (CSV/XLSX)
+              if available.
+            </p>
+          </div>
+        </div>
+      </div>
     </main>
 
     <footer class="footer">
-        <div class="container">
-            <p>&copy; 2026 ExplainGrade · AI Assistant Hub</p>
-        </div>
+      <div class="container">
+        <p>&copy; 2026 ExplainGrade · AI Assistant Hub</p>
+      </div>
     </footer>
 
     <script src="chat.js"></script>
     <script>
-        // Smooth UI wiring for chat suggestions in chat.html specifically
-        document.querySelectorAll('.suggestion-item').forEach(item => {
-            item.addEventListener('click', () => {
-                document.getElementById('chat-input').value = item.textContent;
-                document.getElementById('chat-send').click();
-            });
+      // Smooth UI wiring for chat suggestions in chat.html specifically
+      document.querySelectorAll(".suggestion-item").forEach((item) => {
+        item.addEventListener("click", () => {
+          document.getElementById("chat-input").value = item.textContent;
+          document.getElementById("chat-send").click();
         });
+      });
     </script>
-</body>
-
+  </body>
 </html>
