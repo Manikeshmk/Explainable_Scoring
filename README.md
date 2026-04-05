@@ -448,8 +448,7 @@ Made with ❤️ for intelligent education
 ├── .gitignore
 └── vercel.json
 
-````
-
+```
 ---
 
 ## 🛠️ Setup by Use Case
@@ -458,7 +457,7 @@ Made with ❤️ for intelligent education
 
 ```bash
 python local_grader.py --docx Transcript.docx --xlsx Summary.xlsx --max-score 10
-````
+```
 
 ### Case 2: Want Analytics Dashboard (10 minutes)
 
