@@ -44,21 +44,29 @@ class SemanticMapper:
         if not isinstance(student_answer, str) or not student_answer.strip():
             # Return zeros for empty answers
             return {
-                'avg_semantic_sim': 0.0,
                 'max_semantic_sim': 0.0,
-                'anchors_covered': 0.0,
+                'min_semantic_sim': 0.0,
+                'anchors_covered_40': 0.0,
+                'anchors_covered_50': 0.0,
                 'avg_jaccard': 0.0,
-                'avg_edit_sim': 0.0
+                'answer_length': 0.0,
+                'normalized_coverage': 0.0,
+                'semantic_percentile_80': 0.0,
+                'max_semantic_weighted': 0.0
             }
         
         if not anchors:
             # Handle case with no anchors
             return {
-                'avg_semantic_sim': 0.0,
                 'max_semantic_sim': 0.0,
-                'anchors_covered': 0.0,
+                'min_semantic_sim': 0.0,
+                'anchors_covered_40': 0.0,
+                'anchors_covered_50': 0.0,
                 'avg_jaccard': 0.0,
-                'avg_edit_sim': 0.0
+                'answer_length': 0.0,
+                'normalized_coverage': 0.0,
+                'semantic_percentile_80': 0.0,
+                'max_semantic_weighted': 0.0
             }
 
         student_embedding = self.model.encode(student_answer, convert_to_tensor=True)
@@ -70,18 +78,35 @@ class SemanticMapper:
         
         # Calculate lexical metrics against each anchor
         jaccard_scores = [self.compute_jaccard_similarity(student_answer, anchor) for anchor in anchors]
-        edit_scores = [self.compute_edit_distance_similarity(student_answer, anchor) for anchor in anchors]
         
-        # Define a threshold for considering an anchor "covered"
-        # Since we compare a full sentence against a phrase, similarity might not be 0.99
-        coverage_threshold = 0.35 
+        # Answer length features
+        answer_words = len(student_answer.split())
+        anchor_words = np.mean([len(a.split()) for a in anchors]) if anchors else 1
+        word_ratio = min(answer_words / max(anchor_words, 1), 2.0)  # cap at 2.0
+        
+        # Improved coverage metrics with multiple thresholds
+        coverage_threshold_40 = 0.40
+        coverage_threshold_50 = 0.50
+        
+        covered_40 = float(np.sum(cosine_scores >= coverage_threshold_40) / len(anchors))
+        covered_50 = float(np.sum(cosine_scores >= coverage_threshold_50) / len(anchors))
+        
+        # Percentile-based coverage (80th percentile of cosine scores)
+        percentile_80 = float(np.percentile(cosine_scores, 80))
+        
+        # Max semantic weighted by word ratio (heavily biased toward max similarity)
+        max_semantic_weighted = float(np.max(cosine_scores)) * (0.7 + 0.3 * min(word_ratio, 1.0))
         
         features = {
-            'avg_semantic_sim': float(np.mean(cosine_scores)),
             'max_semantic_sim': float(np.max(cosine_scores)),
-            'anchors_covered': float(np.sum(cosine_scores >= coverage_threshold) / len(anchors)),
+            'min_semantic_sim': float(np.min(cosine_scores)),
+            'anchors_covered_40': covered_40,
+            'anchors_covered_50': covered_50,
             'avg_jaccard': float(np.mean(jaccard_scores)),
-            'avg_edit_sim': float(np.mean(edit_scores))
+            'answer_length': min(word_ratio, 1.0),  # normalized, capped at 1.0
+            'normalized_coverage': (covered_40 + covered_50) / 2.0,  # average of both thresholds
+            'semantic_percentile_80': percentile_80,
+            'max_semantic_weighted': max_semantic_weighted
         }
         
         return features
@@ -92,11 +117,15 @@ def generate_features(df):
     
     print("Generating semantic mapping features...")
     # Initialize lists to hold feature columns
-    avg_sem = []
     max_sem = []
-    coverage = []
+    min_sem = []
+    cov_40 = []
+    cov_50 = []
     avg_jac = []
-    avg_edit = []
+    ans_len = []
+    norm_cov = []
+    sem_p80 = []
+    max_sem_w = []
     
     # Process each row
     total_rows = len(df)
@@ -106,18 +135,26 @@ def generate_features(df):
             
         features = mapper.evaluate_student_answer(row['student_answer'], row['anchors'])
         
-        avg_sem.append(features['avg_semantic_sim'])
         max_sem.append(features['max_semantic_sim'])
-        coverage.append(features['anchors_covered'])
+        min_sem.append(features['min_semantic_sim'])
+        cov_40.append(features['anchors_covered_40'])
+        cov_50.append(features['anchors_covered_50'])
         avg_jac.append(features['avg_jaccard'])
-        avg_edit.append(features['avg_edit_sim'])
+        ans_len.append(features['answer_length'])
+        norm_cov.append(features['normalized_coverage'])
+        sem_p80.append(features['semantic_percentile_80'])
+        max_sem_w.append(features['max_semantic_weighted'])
         
     # Add new feature columns to the dataframe
-    df['feat_avg_semantic'] = avg_sem
     df['feat_max_semantic'] = max_sem
-    df['feat_anchors_covered'] = coverage
+    df['feat_min_semantic'] = min_sem
+    df['feat_cov_40'] = cov_40
+    df['feat_cov_50'] = cov_50
     df['feat_avg_jaccard'] = avg_jac
-    df['feat_avg_edit'] = avg_edit
+    df['feat_answer_length'] = ans_len
+    df['feat_normalized_coverage'] = norm_cov
+    df['feat_semantic_p80'] = sem_p80
+    df['feat_max_semantic_weighted'] = max_sem_w
     
     print("Feature generation complete.")
     return df

@@ -1,0 +1,153 @@
+﻿# ──────────────────────────────────────────────────────────
+#  .gitignore  —  ExplainGrade / Explainable_Scoring
+#  Keep: HTML, CSS, JS (frontend), vercel.json, package.json,
+#        requirements.txt, README.md, server.js, Python source
+#  Exclude: environments, caches, private data, large files
+# ──────────────────────────────────────────────────────────
+
+# ── Python Environments ──────────────────────────────────
+venv/
+spacy-env/
+env/
+ENV/
+.venv/
+
+# ── Python Cache & Build ─────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+dist/
+build/
+
+# ── Node / JS ────────────────────────────────────────────
+node_modules/
+package-lock.json
+
+# ── OS ───────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Environment / Secrets ────────────────────────────────
+.env
+.env.local
+.env.*
+
+# ── IDE ──────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Large Binary / Compiled Files ────────────────────────
+*.dll
+*.so
+*.pth
+*.whl
+
+# ── Trained ML Models (private / large) ─────────────────
+*.pkl
+*.joblib
+*.h5
+*.pt
+*.pth
+asag_scoring_model.pkl
+feature_scaler.pkl
+
+# ── Private / Sensitive Data Files ───────────────────────
+# Spreadsheets with student data
+*.xlsx
+*.xls
+Attendance.xlsx
+Summary.xlsx
+
+# Word documents (transcripts)
+*.docx
+Transcript.docx
+
+# PDF files
+*.pdf
+
+# ── Large Dataset Files ───────────────────────────────────
+*.csv
+combined_test_dataset.csv
+squad_dev_raw.json
+squad_dev_converted.csv
+squad_test_variations.csv
+mohler_dataset_edited.csv
+src/mohler_dataset_edited.csv
+grading_results*.csv
+grading_results.csv
+
+# ── Generated Output / Results (private) ─────────────────
+grades.json
+metrics.json
+test_results.json
+pearson_results*.json
+pearson_results.json
+grading_results_analytics.json
+*_analytics.json
+
+# ── Temporary Development Scripts ────────────────────────
+generate_test_results.py
+create_metrics.py
+test_pearson_improvements.py
+improve_grader_hybrid.py
+
+# ── Launcher / Reference Scripts ─────────────────────────
+PRESENTATION_LAUNCHER.bat
+PRESENTATION_LAUNCHER.sh
+QUICK_REFERENCE.*
+
+# ── Internal Project Docs (not needed in repo) ───────────
+PROJECT_COMPLETE.txt
+FINAL_SUBMISSION_READY.md
+FINAL_SUBMISSION_SUMMARY.md
+*_GUIDE.md
+*_SUMMARY.md
+DEPLOYMENT_*.md
+NLP_*.md
+DRIFT_*.md
+IMPROVEMENTS_*.md
+VERCEL_*.md
+SEMANTIC_DRIFT_ANALYSIS.md
+DRIFT_FIX_SUMMARY.md
+PEARSON_IMPROVEMENT_STRATEGY.md
+TESTING_GUIDE.md
+VIDEO_PRESENTATION_SCRIPT.md
+START_HERE.md
+TECHNOLOGIES_AND_INNOVATIONS.md
+PROJECT_ENHANCEMENT_SUMMARY.md
+DOCKER_SETUP.md
+KUBERNETES_DEPLOYMENT.md
+KAFKA_REALTIME_GUIDE.md
+SPARK_BATCH_GUIDE.md
+FASTAPI_BACKEND_GUIDE.md
+CLOUD_DEPLOYMENT_AWS_GCP_AZURE.md
+
+# ── LaTeX / Presentation Build Artifacts ─────────────────
+presentation.tex
+PRESENTATION.tex
+PRESENTATION.pdf
+PRESENTATION/
+*.aux
+*.log
+*.synctex.gz
+*.out
+*.toc
+*.nav
+*.snm
+*.vrb
+
+# ── Colab Notebooks ───────────────────────────────────────
+AI_chat.ipynb
+Agentic*
+*.ipynb
+
+# ── Temporary Files ───────────────────────────────────────
+*.tmp
+*.temp
+temp_*
+output.txt

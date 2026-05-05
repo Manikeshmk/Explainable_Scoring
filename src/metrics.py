@@ -271,50 +271,113 @@ class MetricsCalculator:
         return metrics
 
 
-def main():
-    """Main execution"""
+def calculate_pearson_for_dataset(dataset_name='squad'):
+    """
+    Calculate Pearson score for a specific dataset
+    
+    Args:
+        dataset_name: Either 'squad' or 'mohler'
+    """
     import sys
     
-    print("ExplainGrade Metrics Calculator")
-    print("="*60)
-    
     calc = MetricsCalculator()
+    
+    # Determine which CSV file to use
+    if dataset_name.lower() == 'squad':
+        csv_file = 'squad_test_variations.csv'
+    elif dataset_name.lower() == 'mohler':
+        csv_file = 'mohler_dataset_edited.csv'
+    else:
+        print(f"✗ Unknown dataset: {dataset_name}")
+        return None
+    
+    print("\n" + "="*60)
+    print(f"🧪 PEARSON CALCULATION FOR {dataset_name.upper()}")
+    print("="*60)
     
     # Load grades
     grades = calc.load_grades('grades.json')
     if grades is None:
-        print("\n⚠ Run local_grader.py first to generate grades.json")
-        sys.exit(1)
+        print("⚠ Run local_grader.py first to generate grades.json")
+        return None
     
-    # Load expected scores
-    test_data = calc.load_expected_scores('squad_test_variations.csv')
+    # Load expected scores for specific dataset
+    test_data = calc.load_expected_scores(csv_file)
     if test_data is None:
-        test_data = calc.load_expected_scores('mohler_dataset_edited.csv')
+        print(f"✗ CSV file not found: {csv_file}")
+        return None
     
-    if test_data is None:
-        print("\n⚠ No test data found")
-        sys.exit(1)
-    
-    # Extract scores
+    # Extract predicted scores
     if isinstance(grades, list) and len(grades) > 0:
-        # Assuming grades is list of {score: float, ...}
         predicted = [g.get('score', 0) if isinstance(g, dict) else 0 for g in grades]
     else:
-        predicted = [5.0] * len(test_data)  # Default if can't extract
+        predicted = [5.0] * len(test_data)
     
-    expected = test_data['expected_score'].tolist() if 'expected_score' in test_data.columns else test_data['score_avg'].tolist()
+    # Extract expected scores
+    if 'expected_score' in test_data.columns:
+        expected = test_data['expected_score'].tolist()
+    elif 'score_avg' in test_data.columns:
+        expected = test_data['score_avg'].tolist()
+    else:
+        print("✗ No expected score column found in dataset")
+        return None
     
-    # Calculate metrics
-    metrics = calc.calculate_all_metrics(predicted, expected)
+    # Make sure we have same length
+    min_len = min(len(predicted), len(expected))
+    predicted = predicted[:min_len]
+    expected = expected[:min_len]
     
-    # Print report
-    calc.print_metrics_report(metrics)
+    # Calculate Pearson specifically
+    pearson_result = calc.calculate_pearson_correlation(predicted, expected)
     
-    # Save results
-    calc.save_metrics_json(metrics)
-    calc.create_metrics_html(metrics, 'test_results.json')
+    if pearson_result:
+        print(f"\n📊 PEARSON CORRELATION: {pearson_result['correlation']:.4f}")
+        print(f"   Interpretation: {pearson_result['interpretation']}")
+        print(f"   P-value: {pearson_result['p_value']:.6f}")
+        print(f"   Samples: {min_len}")
+        return pearson_result
+    else:
+        print("✗ Failed to calculate Pearson correlation")
+        return None
+
+
+def main():
+    """Main execution - calculates Pearson for both datasets"""
+    import sys
     
-    print("\n✅ Metrics calculation complete!")
+    print("ExplainGrade Pearson Score Calculator")
+    print("="*60)
+    
+    # Calculate for both datasets
+    results = {}
+    
+    # Test on SQuAD
+    results['squad'] = calculate_pearson_for_dataset('squad')
+    
+    # Test on Mohler
+    results['mohler'] = calculate_pearson_for_dataset('mohler')
+    
+    # Summary
+    print("\n" + "="*60)
+    print("📈 PEARSON SCORE SUMMARY")
+    print("="*60)
+    
+    if results['squad']:
+        print(f"\n✓ SQuAD:   Pearson = {results['squad']['correlation']:.4f}")
+    else:
+        print(f"\n✗ SQuAD:   Failed to calculate")
+    
+    if results['mohler']:
+        print(f"✓ Mohler:  Pearson = {results['mohler']['correlation']:.4f}")
+    else:
+        print(f"✗ Mohler:  Failed to calculate")
+    
+    # Save detailed results
+    with open('pearson_results.json', 'w') as f:
+        json.dump(results, f, indent=2)
+    print(f"\n✓ Results saved to pearson_results.json")
+    
+    print("\n✅ Pearson calculation complete!")
 
 
 if __name__ == "__main__":

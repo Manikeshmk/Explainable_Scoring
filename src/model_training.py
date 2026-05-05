@@ -519,7 +519,8 @@ def explain_prediction(model, explainer, feature_dict,
     return final, shap_vals
 
 if __name__ == "__main__":
-    file_path = "C:/Users/deii/Desktop/cloud/mohler_dataset_edited.csv"
+    # file_path = "C:/Users/deii/Desktop/cloud/mohler_dataset_edited.csv"
+    file_path = "C:/Users/deii/Desktop/cloud/squad_test_variations.csv"  # Use subset for faster testing
     try:
         # 1. Load data
         df = load_dataset(file_path)
