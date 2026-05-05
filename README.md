@@ -1,6 +1,6 @@
 # 🎓 ExplainGrade AI
 
-> **Intelligent Automated Short Answer Grading System**
+> **Intelligent Automated Summary Grading System**
 >
 > Transform student assessment with semantic intelligence, explainable AI, and cloud-scale processing.
 
@@ -12,7 +12,7 @@
 
 ## ✨ What Is ExplainGrade?
 
-**ExplainGrade AI** is an Automated Short Answer Grading (ASAG) system powered by:
+**ExplainGrade AI** is an Automated Summary Grading (ASAG) system powered by:
 
 - 🧠 **BERT Semantic Understanding**: Deep learning embeddings for meaning-based grading
 - 📊 **6-Dimensional Analytics**: Measure learning across multiple dimensions
@@ -95,7 +95,7 @@ python -m src.spark_batch
 
 ---
 
-## �️ Technology Stack
+## ⚙️ Technology Stack
 
 ### NLP & Analytics (Core)
 
@@ -150,7 +150,7 @@ python -m src.spark_batch
 
 ---
 
-## � 6-Dimensional Analytics
+## 📊 6-Dimensional Analytics
 
 ExplainGrade measures learning across **six independent dimensions**:
 
@@ -422,7 +422,7 @@ MIT License - See LICENSE file for details
 
 **Built for Cloud Computing & AI Service course**
 
-Made with ❤️ for intelligent education
+Made with 🧠 for intelligent education
 
 ├── 📊 Monitoring (NEW ⭐)
 │ ├── monitoring/
@@ -449,7 +449,6 @@ Made with ❤️ for intelligent education
 └── vercel.json
 
 ````
-
 ---
 
 ## 🛠️ Setup by Use Case
@@ -554,8 +553,4 @@ Course: Cloud Computing & AI Service
 
 ---
 
-**Built with ❤️ for learners and educators**
-
-🚀 Start with the Quick Start above, then explore `START_HERE.md` for more detailed guidance.
-#   E x p l a i n a b l e _ S c o r i n g  
- 
+**Built with 🧠 for learners and educators**
