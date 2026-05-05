@@ -1,6 +1,6 @@
 # 🎓 ExplainGrade AI
 
-> **Intelligent Automated Short Answer Grading System**
+> **Intelligent Automated Summary Grading System**
 >
 > Transform student assessment with semantic intelligence, explainable AI, and cloud-scale processing.
 
@@ -12,7 +12,7 @@
 
 ## ✨ What Is ExplainGrade?
 
-**ExplainGrade AI** is an Automated Short Answer Grading (ASAG) system powered by:
+**ExplainGrade AI** is an Automated Summary Grading (ASAG) system powered by:
 
 - 🧠 **BERT Semantic Understanding**: Deep learning embeddings for meaning-based grading
 - 📊 **6-Dimensional Analytics**: Measure learning across multiple dimensions
